@@ -22,21 +22,23 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def index():
     return render_template('index.html')
 
+
 # Upload + process
 @app.route('/upload', methods=['POST'])
 def upload_file():
+
     if 'file' not in request.files:
-     return "❌ No file part in request"
+        return "❌ No file part in request"
 
     file = request.files['file']
 
     if file.filename == "":
-     return "❌ No file selected"
-    
-    file = request.files['file']
-    chart_type = request.form['chart']
+        return "❌ No file selected"
 
-    # Save file safely
+    chart_type = request.form['chart']
+    subgroup_size = int(request.form['subgroup_size'])
+
+    # Save file
     filename = secure_filename(file.filename)
     unique_name = str(int(time.time())) + "_" + filename
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
@@ -52,34 +54,22 @@ def upload_file():
     else:
         df = pd.read_excel(filepath)
 
-    # Validation
-    if df.isnull().values.any():
-        return "❌ Data contains empty cells"
-
-    # Convert everything to numeric (force)
+    # Convert to numeric
     df = df.apply(pd.to_numeric, errors='coerce')
 
-    # Check for invalid or empty values
     if df.isnull().values.any():
         return "❌ Data must be numeric and without empty cells"
 
-    # Subgroups
-    subgroup_size = int(request.form['subgroup_size'])
-
-    # Flatten data (single column)
+    # Prepare subgroups
     data = df.iloc[:, 0].values
 
-    # Check if enough data
     if len(data) < subgroup_size:
         return "❌ Not enough data for subgrouping"
 
-    # Trim data to fit exact subgroups
     usable_length = len(data) - (len(data) % subgroup_size)
     data = data[:usable_length]
 
-    # Reshape into subgroups
     subgroups = data.reshape(-1, subgroup_size)
-
     n = subgroup_size
 
     # Constants
@@ -87,11 +77,17 @@ def upload_file():
     D3_table = {2:0, 3:0, 4:0, 5:0}
     D4_table = {2:3.267, 3:2.574, 4:2.282, 5:2.114}
 
-    if n not in A2_table:
-        return "❌ Unsupported subgroup size (use 2–5 columns)"
+    A3_table = {2:2.659, 3:1.954, 4:1.628, 5:1.427}
+    B3_table = {2:0, 3:0, 4:0, 5:0}
+    B4_table = {2:3.267, 3:2.568, 4:2.266, 5:2.089}
 
-    # Only Xbar-R for now
+    # =========================
+    # XBAR-R CHART
+    # =========================
     if chart_type == "xbar_r":
+
+        if n not in A2_table:
+            return "❌ Unsupported subgroup size (use 2–5)"
 
         xbar = np.mean(subgroups, axis=1)
         R = np.max(subgroups, axis=1) - np.min(subgroups, axis=1)
@@ -109,20 +105,17 @@ def upload_file():
         UCL_R = D4 * R_bar
         LCL_R = D3 * R_bar
 
-        # Detect out-of-control points
-        out_of_control_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
-        out_of_control_r = (R > UCL_R) | (R < LCL_R)
+        # Detect
+        out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+        out_r = (R > UCL_R) | (R < LCL_R)
 
-        out_x_count = np.sum(out_of_control_x)
-        out_r_count = np.sum(out_of_control_r)
+        total_out = np.sum(out_x) + np.sum(out_r)
 
-        # Generate insight
-
-        if out_x_count > 0 or out_r_count > 0:
-            insight = f"⚠️ {out_x_count + out_r_count} point(s) out of control → Process is NOT stable"
+        if total_out > 0:
+            insight = f"⚠️ {total_out} point(s) out of control → Process is NOT stable"
         else:
-            insight = "✅ Process is stable (all points within control limits)"
-    
+            insight = "✅ Process is stable"
+
         # Plot
         fig = make_subplots(
             rows=2, cols=1,
@@ -130,60 +123,97 @@ def upload_file():
             subplot_titles=("X̄ Chart", "R Chart")
         )
 
-        # Xbar chart
-        fig.add_trace(
-        go.Scatter(
-        y=xbar,
-        mode='lines+markers',
-        name='Xbar',
-        marker=dict(
-            size=8,
-            color=['red' if val else 'blue' for val in out_of_control_x]
+        fig.add_trace(go.Scatter(
+            y=xbar,
+            mode='lines+markers',
+            marker=dict(color=['red' if v else 'blue' for v in out_x])
+        ), row=1, col=1)
+
+        fig.add_trace(go.Scatter(
+            y=R,
+            mode='lines+markers',
+            marker=dict(color=['red' if v else 'blue' for v in out_r])
+        ), row=2, col=1)
+
+        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green")
+        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red")
+        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red")
+
+        fig.add_hline(y=R_bar, row=2, col=1, line_color="green")
+        fig.add_hline(y=UCL_R, row=2, col=1, line_color="red")
+        fig.add_hline(y=LCL_R, row=2, col=1, line_color="red")
+
+        fig.update_layout(height=700, title=f"X̄-R Control Chart (n={n})")
+
+    # =========================
+    # XBAR-S CHART
+    # =========================
+    elif chart_type == "xbar_s":
+
+        if n not in A3_table:
+            return "❌ Unsupported subgroup size for Xbar-S"
+
+        xbar = np.mean(subgroups, axis=1)
+        S = np.std(subgroups, axis=1, ddof=1)
+
+        xbar_bar = np.mean(xbar)
+        S_bar = np.mean(S)
+
+        A3 = A3_table[n]
+        B3 = B3_table[n]
+        B4 = B4_table[n]
+
+        UCL_xbar = xbar_bar + A3 * S_bar
+        LCL_xbar = xbar_bar - A3 * S_bar
+
+        UCL_S = B4 * S_bar
+        LCL_S = B3 * S_bar
+
+        # Detect
+        out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+        out_s = (S > UCL_S) | (S < LCL_S)
+
+        total_out = np.sum(out_x) + np.sum(out_s)
+
+        if total_out > 0:
+            insight = f"⚠️ {total_out} point(s) out of control → Process is NOT stable"
+        else:
+            insight = "✅ Process is stable"
+
+        # Plot
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            subplot_titles=("X̄ Chart", "S Chart")
         )
-    ),
-    row=1, col=1
-)
 
-        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green", annotation_text="Mean")
-        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red", annotation_text="UCL")
-        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red", annotation_text="LCL")
+        fig.add_trace(go.Scatter(
+            y=xbar,
+            mode='lines+markers',
+            marker=dict(color=['red' if v else 'blue' for v in out_x])
+        ), row=1, col=1)
 
-        # Axis labels
-        fig.update_xaxes(title_text="Subgroup Number", row=2, col=1)
-        fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
-        fig.update_yaxes(title_text="Range", row=2, col=1)
+        fig.add_trace(go.Scatter(
+            y=S,
+            mode='lines+markers',
+            marker=dict(color=['red' if v else 'blue' for v in out_s])
+        ), row=2, col=1)
 
-        # R chart
-        fig.add_trace(
-        go.Scatter(
-        y=R,
-        mode='lines+markers',
-        name='R',
-        marker=dict(
-            size=8,
-            color=['red' if val else 'blue' for val in out_of_control_r]
-        )
-    ),
-    row=2, col=1
-)
+        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green")
+        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red")
+        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red")
 
-        fig.add_hline(y=R_bar, row=2, col=1, line_color="green", annotation_text="R̄")
-        fig.add_hline(y=UCL_R, row=2, col=1, line_color="red", annotation_text="UCL")
-        fig.add_hline(y=LCL_R, row=2, col=1, line_color="red", annotation_text="LCL")
+        fig.add_hline(y=S_bar, row=2, col=1, line_color="green")
+        fig.add_hline(y=UCL_S, row=2, col=1, line_color="red")
+        fig.add_hline(y=LCL_S, row=2, col=1, line_color="red")
 
-        # Axis labels
-        fig.update_xaxes(title_text="Subgroup", row=2, col=1)
-        fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
-        fig.update_yaxes(title_text="Range", row=2, col=1)
-
-        fig.update_layout(title=f"X̄-R Control Chart (n={n})")
-
-        graph_html = fig.to_html(full_html=False)
-        return render_template('index.html', graph=graph_html, insight=insight)
-        return render_template('index.html', graph=graph_html)
+        fig.update_layout(height=700, title=f"X̄-S Control Chart (n={n})")
 
     else:
-        return "❌ Only Xbar-R chart supported currently"
+        return "❌ Invalid chart type selected"
+
+    graph_html = fig.to_html(full_html=False)
+    return render_template('index.html', graph=graph_html, insight=insight)
 
 
 # Run app
