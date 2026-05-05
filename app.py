@@ -213,6 +213,7 @@ def upload_file():
         return "❌ Invalid chart type selected"
 
     graph_html = fig.to_html(full_html=False)
+    os.remove(filepath)  # delete file after processing
     return render_template('index.html', graph=graph_html, insight=insight)
 
 
