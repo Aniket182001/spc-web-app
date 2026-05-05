@@ -6,103 +6,118 @@ from plotly.subplots import make_subplots
 import os
 from werkzeug.utils import secure_filename
 import time
-import os
 
 app = Flask(__name__)
+
+# Folder setup
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-# Ensure folder exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# Home page
+
+# Home route
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# Handle upload + chart
+# Upload + process
 @app.route('/upload', methods=['POST'])
 def upload_file():
     file = request.files['file']
     chart_type = request.form['chart']
 
-    # Secure filename
+    # Save file safely
     filename = secure_filename(file.filename)
-
-    # Add timestamp to avoid overwrite
     unique_name = str(int(time.time())) + "_" + filename
-
     filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
 
-    # ✅ TRY-EXCEPT HERE
     try:
         file.save(filepath)
     except PermissionError:
         return "❌ Please close the Excel file before uploading"
 
+    # Read file
     df = pd.read_excel(filepath)
+
+    # Validation
+    if df.isnull().values.any():
+        return "❌ Data contains empty cells"
+
+    if not np.issubdtype(df.values.dtype, np.number):
+        return "❌ Only numeric data allowed"
 
     # Subgroups
     subgroups = df.values
+    n = subgroups.shape[1]
 
-    xbar = np.mean(subgroups, axis=1)
-    R = np.max(subgroups, axis=1) - np.min(subgroups, axis=1)
+    # Constants
+    A2_table = {2:1.88, 3:1.023, 4:0.729, 5:0.577}
+    D3_table = {2:0, 3:0, 4:0, 5:0}
+    D4_table = {2:3.267, 3:2.574, 4:2.282, 5:2.114}
 
-    xbar_bar = np.mean(xbar)
-    R_bar = np.mean(R)
-n = subgroups.shape[1]
+    if n not in A2_table:
+        return "❌ Unsupported subgroup size (use 2–5 columns)"
 
-A2_table = {2:1.88, 3:1.023, 4:0.729, 5:0.577}
-D3_table = {2:0, 3:0, 4:0, 5:0}
-D4_table = {2:3.267, 3:2.574, 4:2.282, 5:2.114}
+    # Only Xbar-R for now
+    if chart_type == "xbar_r":
 
-A2 = A2_table.get(n, 0.577)
-D3 = D3_table.get(n, 0)
-D4 = D4_table.get(n, 2.114)
+        xbar = np.mean(subgroups, axis=1)
+        R = np.max(subgroups, axis=1) - np.min(subgroups, axis=1)
 
-UCL_R = D4 * R_bar
-LCL_R = D3 * R_bar
+        xbar_bar = np.mean(xbar)
+        R_bar = np.mean(R)
 
-UCL_xbar = xbar_bar + A2 * R_bar
-LCL_xbar = xbar_bar - A2 * R_bar
+        A2 = A2_table[n]
+        D3 = D3_table[n]
+        D4 = D4_table[n]
 
-# Create 2 rows (Xbar + R)
-fig = make_subplots(
-    rows=2, cols=1,
-    shared_xaxes=True,
-    subplot_titles=("X̄ Chart", "R Chart")
-)
+        UCL_xbar = xbar_bar + A2 * R_bar
+        LCL_xbar = xbar_bar - A2 * R_bar
 
-# ---- Xbar Chart ----
-fig.add_trace(
-    go.Scatter(y=xbar, mode='lines+markers', name='Xbar'),
-    row=1, col=1
-)
+        UCL_R = D4 * R_bar
+        LCL_R = D3 * R_bar
 
-fig.add_hline(y=xbar_bar, row=1, col=1, line_dash="dash", annotation_text="Mean")
-fig.add_hline(y=UCL_xbar, row=1, col=1, line_dash="dash", annotation_text="UCL")
-fig.add_hline(y=LCL_xbar, row=1, col=1, line_dash="dash", annotation_text="LCL")
+        # Plot
+        fig = make_subplots(
+            rows=2, cols=1,
+            shared_xaxes=True,
+            subplot_titles=("X̄ Chart", "R Chart")
+        )
 
-# ---- R Chart ----
-fig.add_trace(
-    go.Scatter(y=R, mode='lines+markers', name='R'),
-    row=2, col=1
-)
+        # Xbar chart
+        fig.add_trace(
+            go.Scatter(y=xbar, mode='lines+markers', name='Xbar'),
+            row=1, col=1
+        )
 
-fig.add_hline(y=R_bar, row=2, col=1, line_dash="dash", annotation_text="R̄")
-fig.add_hline(y=UCL_R, row=2, col=1, line_dash="dash", annotation_text="UCL")
-fig.add_hline(y=LCL_R, row=2, col=1, line_dash="dash", annotation_text="LCL")
+        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green", annotation_text="Mean")
+        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red", annotation_text="UCL")
+        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red", annotation_text="LCL")
 
-# Layout
-fig.update_layout(height=700, title="X̄-R Control Chart")
+        # R chart
+        fig.add_trace(
+            go.Scatter(y=R, mode='lines+markers', name='R'),
+            row=2, col=1
+        )
 
-graph_html = fig.to_html(full_html=False)
-    return render_template('chart.html', graph_html=graph_html)
+        fig.add_hline(y=R_bar, row=2, col=1, line_color="green", annotation_text="R̄")
+        fig.add_hline(y=UCL_R, row=2, col=1, line_color="red", annotation_text="UCL")
+        fig.add_hline(y=LCL_R, row=2, col=1, line_color="red", annotation_text="LCL")
 
+        fig.update_layout(height=700, title="X̄-R Control Chart")
+
+        graph_html = fig.to_html(full_html=False)
+
+        return render_template('index.html', graph=graph_html)
+
+    else:
+        return "❌ Only Xbar-R chart supported currently"
+
+
+# Run app
 if __name__ == '__main__':
     print("🚀 Starting SPC Server...")
     print("👉 Open http://127.0.0.1:5000 in browser")
