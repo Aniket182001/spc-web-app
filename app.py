@@ -66,11 +66,29 @@ def upload_file():
     if len(data) < subgroup_size:
         return "❌ Not enough data for subgrouping"
 
-    usable_length = len(data) - (len(data) % subgroup_size)
-    data = data[:usable_length]
+    total_points = len(data)
+    remainder = total_points % subgroup_size
+
+    dropped_points = 0
+    dropped_values = []
+
+    if remainder != 0:
+        dropped_points = remainder
+    
+        # 👇 Capture dropped values BEFORE trimming
+        dropped_values = data[-remainder:]
+        
+        usable_length = total_points - remainder
+        data = data[:usable_length]
 
     subgroups = data.reshape(-1, subgroup_size)
     n = subgroup_size
+
+    warning = None
+
+    if dropped_points > 0:
+        clean_values = [int(x) for x in dropped_values]
+        warning = f"⚠️ Last {dropped_points} point(s) were excluded: {clean_values} to form complete subgroups"
 
     # Constants
     A2_table = {2:1.88, 3:1.023, 4:0.729, 5:0.577}
@@ -214,7 +232,7 @@ def upload_file():
 
     graph_html = fig.to_html(full_html=False)
     os.remove(filepath)  # delete file after processing
-    return render_template('index.html', graph=graph_html, insight=insight)
+    return render_template('index.html', graph=graph_html, insight=insight, warning=warning)
 
 
 # Run app
