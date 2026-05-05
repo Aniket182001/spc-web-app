@@ -22,10 +22,17 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def index():
     return render_template('index.html')
 
-
 # Upload + process
 @app.route('/upload', methods=['POST'])
 def upload_file():
+    if 'file' not in request.files:
+     return "❌ No file part in request"
+
+    file = request.files['file']
+
+    if file.filename == "":
+     return "❌ No file selected"
+    
     file = request.files['file']
     chart_type = request.form['chart']
 
@@ -40,14 +47,21 @@ def upload_file():
         return "❌ Please close the Excel file before uploading"
 
     # Read file
-    df = pd.read_excel(filepath)
+    if filepath.endswith('.csv'):
+        df = pd.read_csv(filepath)
+    else:
+        df = pd.read_excel(filepath)
 
     # Validation
     if df.isnull().values.any():
         return "❌ Data contains empty cells"
 
-    if not np.issubdtype(df.values.dtype, np.number):
-        return "❌ Only numeric data allowed"
+    # Convert everything to numeric (force)
+    df = df.apply(pd.to_numeric, errors='coerce')
+
+    # Check for invalid or empty values
+    if df.isnull().values.any():
+        return "❌ Data must be numeric and without empty cells"
 
     # Subgroups
     subgroups = df.values
@@ -80,6 +94,10 @@ def upload_file():
         UCL_R = D4 * R_bar
         LCL_R = D3 * R_bar
 
+        # Detect out-of-control points
+        out_of_control_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+        out_of_control_r = (R > UCL_R) | (R < LCL_R)
+
         # Plot
         fig = make_subplots(
             rows=2, cols=1,
@@ -89,23 +107,47 @@ def upload_file():
 
         # Xbar chart
         fig.add_trace(
-            go.Scatter(y=xbar, mode='lines+markers', name='Xbar'),
-            row=1, col=1
+        go.Scatter(
+        y=xbar,
+        mode='lines+markers',
+        name='Xbar',
+        marker=dict(
+            color=['red' if val else 'blue' for val in out_of_control_x]
         )
+    ),
+    row=1, col=1
+)
 
         fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green", annotation_text="Mean")
         fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red", annotation_text="UCL")
         fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red", annotation_text="LCL")
 
+        # Axis labels
+        fig.update_xaxes(title_text="Subgroup", row=2, col=1)
+        fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
+        fig.update_yaxes(title_text="Range", row=2, col=1)
+
         # R chart
         fig.add_trace(
-            go.Scatter(y=R, mode='lines+markers', name='R'),
-            row=2, col=1
+        go.Scatter(
+        y=R,
+        mode='lines+markers',
+        name='R',
+        marker=dict(
+            color=['red' if val else 'blue' for val in out_of_control_r]
         )
+    ),
+    row=2, col=1
+)
 
         fig.add_hline(y=R_bar, row=2, col=1, line_color="green", annotation_text="R̄")
         fig.add_hline(y=UCL_R, row=2, col=1, line_color="red", annotation_text="UCL")
         fig.add_hline(y=LCL_R, row=2, col=1, line_color="red", annotation_text="LCL")
+
+        # Axis labels
+        fig.update_xaxes(title_text="Subgroup", row=2, col=1)
+        fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
+        fig.update_yaxes(title_text="Range", row=2, col=1)
 
         fig.update_layout(height=700, title="X̄-R Control Chart")
 
