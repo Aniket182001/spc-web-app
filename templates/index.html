@@ -16,6 +16,9 @@
         <option value="xbar_s">Xbar-S</option>
     </select><br><br>
 
+    <label>Subgroup Size:</label>
+    <input type="number" name="subgroup_size" min="2" max="10" required><br><br>
+
     <button type="submit">Generate Chart</button>
 </form>
 
@@ -23,6 +26,10 @@
 
 {% if graph %}
     {{ graph|safe }}
+{% endif %}
+
+{% if insight %}
+    <p>{{ insight }}</p>
 {% endif %}
 
 </body>

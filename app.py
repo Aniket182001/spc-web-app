@@ -64,8 +64,23 @@ def upload_file():
         return "❌ Data must be numeric and without empty cells"
 
     # Subgroups
-    subgroups = df.values
-    n = subgroups.shape[1]
+    subgroup_size = int(request.form['subgroup_size'])
+
+    # Flatten data (single column)
+    data = df.iloc[:, 0].values
+
+    # Check if enough data
+    if len(data) < subgroup_size:
+        return "❌ Not enough data for subgrouping"
+
+    # Trim data to fit exact subgroups
+    usable_length = len(data) - (len(data) % subgroup_size)
+    data = data[:usable_length]
+
+    # Reshape into subgroups
+    subgroups = data.reshape(-1, subgroup_size)
+
+    n = subgroup_size
 
     # Constants
     A2_table = {2:1.88, 3:1.023, 4:0.729, 5:0.577}
@@ -98,6 +113,16 @@ def upload_file():
         out_of_control_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
         out_of_control_r = (R > UCL_R) | (R < LCL_R)
 
+        out_x_count = np.sum(out_of_control_x)
+        out_r_count = np.sum(out_of_control_r)
+
+        # Generate insight
+
+        if out_x_count > 0 or out_r_count > 0:
+            insight = f"⚠️ {out_x_count + out_r_count} point(s) out of control → Process is NOT stable"
+        else:
+            insight = "✅ Process is stable (all points within control limits)"
+    
         # Plot
         fig = make_subplots(
             rows=2, cols=1,
@@ -112,6 +137,7 @@ def upload_file():
         mode='lines+markers',
         name='Xbar',
         marker=dict(
+            size=8,
             color=['red' if val else 'blue' for val in out_of_control_x]
         )
     ),
@@ -123,7 +149,7 @@ def upload_file():
         fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red", annotation_text="LCL")
 
         # Axis labels
-        fig.update_xaxes(title_text="Subgroup", row=2, col=1)
+        fig.update_xaxes(title_text="Subgroup Number", row=2, col=1)
         fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
         fig.update_yaxes(title_text="Range", row=2, col=1)
 
@@ -134,6 +160,7 @@ def upload_file():
         mode='lines+markers',
         name='R',
         marker=dict(
+            size=8,
             color=['red' if val else 'blue' for val in out_of_control_r]
         )
     ),
@@ -149,10 +176,10 @@ def upload_file():
         fig.update_yaxes(title_text="X̄ Values", row=1, col=1)
         fig.update_yaxes(title_text="Range", row=2, col=1)
 
-        fig.update_layout(height=700, title="X̄-R Control Chart")
+        fig.update_layout(title=f"X̄-R Control Chart (n={n})")
 
         graph_html = fig.to_html(full_html=False)
-
+        return render_template('index.html', graph=graph_html, insight=insight)
         return render_template('index.html', graph=graph_html)
 
     else:
