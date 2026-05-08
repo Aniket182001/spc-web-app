@@ -6,6 +6,14 @@ from plotly.subplots import make_subplots
 import os
 from werkzeug.utils import secure_filename
 import time
+from spc_constants import (
+    A2_TABLE,
+    D3_TABLE,
+    D4_TABLE,
+    A3_TABLE,
+    B3_TABLE,
+    B4_TABLE
+)
 
 app = Flask(__name__)
 
@@ -49,19 +57,30 @@ def upload_file():
         return "❌ Please close the Excel file before uploading"
 
     # Read file
-    if filepath.endswith('.csv'):
-        df = pd.read_csv(filepath)
+    file_extension = os.path.splitext(filename)[1].lower()
+    if file_extension == '.csv':
+        df = pd.read_csv(filepath, header=None, encoding='latin1')
+
+    elif file_extension == '.txt':
+        df = pd.read_csv(filepath, header=None, encoding='latin1')
+
+    elif file_extension in ['.xlsx', '.xls']:
+        df = pd.read_excel(filepath, header=None)
+
     else:
-        df = pd.read_excel(filepath)
+        return "❌ Unsupported file format"
 
     # Convert to numeric
     df = df.apply(pd.to_numeric, errors='coerce')
 
-    if df.isnull().values.any():
-        return "❌ Data must be numeric and without empty cells"
+    # Remove empty/non-numeric rows
+    df = df.dropna()
 
-    # Prepare subgroups
+    # Prepare data
     data = df.iloc[:, 0].values
+
+    if len(data) == 0:
+        return "❌ No valid numeric data found"
 
     if len(data) < subgroup_size:
         return "❌ Not enough data for subgrouping"
@@ -90,21 +109,13 @@ def upload_file():
         clean_values = [int(x) for x in dropped_values]
         warning = f"⚠️ Last {dropped_points} point(s) were excluded: {clean_values} to form complete subgroups"
 
-    # Constants
-    A2_table = {2:1.88, 3:1.023, 4:0.729, 5:0.577}
-    D3_table = {2:0, 3:0, 4:0, 5:0}
-    D4_table = {2:3.267, 3:2.574, 4:2.282, 5:2.114}
-
-    A3_table = {2:2.659, 3:1.954, 4:1.628, 5:1.427}
-    B3_table = {2:0, 3:0, 4:0, 5:0}
-    B4_table = {2:3.267, 3:2.568, 4:2.266, 5:2.089}
 
     # =========================
     # XBAR-R CHART
     # =========================
     if chart_type == "xbar_r":
 
-        if n not in A2_table:
+        if n not in A2_TABLE:
             return "❌ Unsupported subgroup size (use 2–5)"
 
         xbar = np.mean(subgroups, axis=1)
@@ -113,9 +124,9 @@ def upload_file():
         xbar_bar = np.mean(xbar)
         R_bar = np.mean(R)
 
-        A2 = A2_table[n]
-        D3 = D3_table[n]
-        D4 = D4_table[n]
+        A2 = A2_TABLE[n]
+        D3 = D3_TABLE[n]
+        D4 = D4_TABLE[n]
 
         UCL_xbar = xbar_bar + A2 * R_bar
         LCL_xbar = xbar_bar - A2 * R_bar
@@ -168,7 +179,7 @@ def upload_file():
     # =========================
     elif chart_type == "xbar_s":
 
-        if n not in A3_table:
+        if n not in A3_TABLE:
             return "❌ Unsupported subgroup size for Xbar-S"
 
         xbar = np.mean(subgroups, axis=1)
@@ -177,9 +188,9 @@ def upload_file():
         xbar_bar = np.mean(xbar)
         S_bar = np.mean(S)
 
-        A3 = A3_table[n]
-        B3 = B3_table[n]
-        B4 = B4_table[n]
+        A3 = A3_TABLE[n]
+        B3 = B3_TABLE[n]
+        B4 = B4_TABLE[n]
 
         UCL_xbar = xbar_bar + A3 * S_bar
         LCL_xbar = xbar_bar - A3 * S_bar
