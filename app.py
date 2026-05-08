@@ -165,14 +165,35 @@ def upload_file():
 
         total_out = np.sum(out_x) + np.sum(out_r)
 
-        if total_out > 0:
-            insight = (
-                f"⚠️ {total_out} point(s) out of control "
-                f"→ Process is NOT stable"
+        analysis_messages = []
+
+        if np.sum(out_x) == 0:
+            analysis_messages.append(
+                "✅ Process average is stable within control limits"
+            )
+        else:
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_x)} subgroup mean point(s) outside control limits"
             )
 
+        if np.sum(out_r) == 0:
+            analysis_messages.append(
+                "✅ Process variation is stable"
+            )
         else:
-            insight = "✅ Process is stable"
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_r)} range point(s) outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total subgroups analyzed: {len(xbar)}"
+        )
+
+        analysis_messages.append(
+            f"ℹ️ Subgroup size used: {n}"
+        )
+
+        insight = "<br>".join(analysis_messages) 
 
         subgroup_numbers = list(range(1, len(xbar) + 1))
 
@@ -320,14 +341,35 @@ def upload_file():
 
         total_out = np.sum(out_x) + np.sum(out_s)
 
-        if total_out > 0:
-            insight = (
-                f"⚠️ {total_out} point(s) out of control "
-                f"→ Process is NOT stable"
+        analysis_messages = []
+
+        if np.sum(out_x) == 0:
+            analysis_messages.append(
+                "✅ Process average is stable within control limits"
+            )
+        else:
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_x)} subgroup mean point(s) outside control limits"
             )
 
+        if np.sum(out_s) == 0:
+            analysis_messages.append(
+                "✅ Process standard deviation is stable"
+            )
         else:
-            insight = "✅ Process is stable"
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_s)} standard deviation point(s) outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total subgroups analyzed: {len(xbar)}"
+        )
+
+        analysis_messages.append(
+            f"ℹ️ Subgroup size used: {n}"
+        )
+
+        insight = "<br>".join(analysis_messages)
 
         subgroup_numbers = list(range(1, len(xbar) + 1))
 
