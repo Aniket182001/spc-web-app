@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Capability Analysis</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        button {
+            margin-top: 25px;
+            width: 100%;
+            background-color: #4deb25;
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: rgb(9, 214, 57);
+        }
+
+        .result-box {
+            margin-top: 20px;
+            line-height: 1.8;
+            font-size: 16px;
+        }
+
+        .insight {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #ecfeff;
+            border: 1px solid #67e8f9;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📊 Process Capability Analysis</h1>
+
+    <div class="card">
+
+        <form action="/capability/analyze" method="POST" enctype="multipart/form-data">
+
+            <label>Upload Data File</label>
+            <input type="file" name="file" required>
+
+            <label>Lower Specification Limit (LSL)</label>
+            <input type="number" step="any" name="lsl" required>
+
+            <label>Upper Specification Limit (USL)</label>
+            <input type="number" step="any" name="usl" required>
+
+            <button type="submit">
+                Calculate Capability
+            </button>
+
+        </form>
+
+    </div>
+
+    {% if results %}
+
+    <div class="card">
+
+        <h2>Capability Results</h2>
+
+        <div class="result-box">
+
+            <b>Mean:</b> {{ results.mean }} <br>
+            <b>Standard Deviation:</b> {{ results.std_dev }} <br>
+            <b>Cp:</b> {{ results.cp }} <br>
+            <b>Cpk:</b> {{ results.cpk }}
+
+        </div>
+
+        <div class="insight">
+            {{ insight|safe }}
+        </div>
+
+    </div>
+
+    {% endif %}
+
+    {% if graph %}
+    <div class="card">
+        {{ graph|safe }}
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
