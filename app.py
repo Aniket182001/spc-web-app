@@ -6,6 +6,7 @@ from plotly.subplots import make_subplots
 import os
 from werkzeug.utils import secure_filename
 import time
+
 from spc_constants import (
     A2_TABLE,
     D3_TABLE,
@@ -25,13 +26,17 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 
-# Home route
+# =========================
+# HOME ROUTE
+# =========================
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# Upload + process
+# =========================
+# UPLOAD + PROCESS
+# =========================
 @app.route('/upload', methods=['POST'])
 def upload_file():
 
@@ -53,11 +58,16 @@ def upload_file():
 
     try:
         file.save(filepath)
+
     except PermissionError:
         return "❌ Please close the Excel file before uploading"
 
-    # Read file
+    # =========================
+    # READ FILE
+    # =========================
+
     file_extension = os.path.splitext(filename)[1].lower()
+
     if file_extension == '.csv':
         df = pd.read_csv(filepath, header=None, encoding='latin1')
 
@@ -70,13 +80,13 @@ def upload_file():
     else:
         return "❌ Unsupported file format"
 
-    # Convert to numeric
-    df = df.apply(pd.to_numeric, errors='coerce')
+    # =========================
+    # CLEAN DATA
+    # =========================
 
-    # Remove empty/non-numeric rows
+    df = df.apply(pd.to_numeric, errors='coerce')
     df = df.dropna()
 
-    # Prepare data
     data = df.iloc[:, 0].values
 
     if len(data) == 0:
@@ -85,6 +95,10 @@ def upload_file():
     if len(data) < subgroup_size:
         return "❌ Not enough data for subgrouping"
 
+    # =========================
+    # HANDLE INCOMPLETE SUBGROUPS
+    # =========================
+
     total_points = len(data)
     remainder = total_points % subgroup_size
 
@@ -92,36 +106,45 @@ def upload_file():
     dropped_values = []
 
     if remainder != 0:
+
         dropped_points = remainder
-    
-        # 👇 Capture dropped values BEFORE trimming
+
         dropped_values = data[-remainder:]
-        
+
         usable_length = total_points - remainder
+
         data = data[:usable_length]
 
     subgroups = data.reshape(-1, subgroup_size)
+
     n = subgroup_size
 
     warning = None
 
     if dropped_points > 0:
-        clean_values = [int(x) for x in dropped_values]
-        warning = f"⚠️ Last {dropped_points} point(s) were excluded: {clean_values} to form complete subgroups"
 
+        clean_values = [int(x) for x in dropped_values]
+
+        warning = (
+            f"⚠️ Last {dropped_points} point(s) were excluded: "
+            f"{clean_values} to form complete subgroups"
+        )
 
     # =========================
     # XBAR-R CHART
     # =========================
+
     if chart_type == "xbar_r":
 
         if n not in A2_TABLE:
-            return "❌ Unsupported subgroup size (use 2–5)"
+            return "❌ Unsupported subgroup size for Xbar-R"
 
         xbar = np.mean(subgroups, axis=1)
+
         R = np.max(subgroups, axis=1) - np.min(subgroups, axis=1)
 
         xbar_bar = np.mean(xbar)
+
         R_bar = np.mean(R)
 
         A2 = A2_TABLE[n]
@@ -134,58 +157,149 @@ def upload_file():
         UCL_R = D4 * R_bar
         LCL_R = D3 * R_bar
 
-        # Detect
+        # Out of control detection
+
         out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+
         out_r = (R > UCL_R) | (R < LCL_R)
 
         total_out = np.sum(out_x) + np.sum(out_r)
 
         if total_out > 0:
-            insight = f"⚠️ {total_out} point(s) out of control → Process is NOT stable"
+            insight = (
+                f"⚠️ {total_out} point(s) out of control "
+                f"→ Process is NOT stable"
+            )
+
         else:
             insight = "✅ Process is stable"
 
-        # Plot
+        subgroup_numbers = list(range(1, len(xbar) + 1))
+
+        # =========================
+        # PLOT
+        # =========================
+
         fig = make_subplots(
-            rows=2, cols=1,
+            rows=2,
+            cols=1,
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "R Chart")
         )
 
-        fig.add_trace(go.Scatter(
-            y=xbar,
-            mode='lines+markers',
-            marker=dict(color=['red' if v else 'blue' for v in out_x])
-        ), row=1, col=1)
+        # XBAR TRACE
 
-        fig.add_trace(go.Scatter(
-            y=R,
-            mode='lines+markers',
-            marker=dict(color=['red' if v else 'blue' for v in out_r])
-        ), row=2, col=1)
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=xbar,
+                mode='lines+markers',
+                name='Subgroup Mean',
+                line=dict(color='black', width=2),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_x
+                    ]
+                )
+            ),
+            row=1,
+            col=1
+        )
 
-        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green")
-        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red")
-        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red")
+        # R TRACE
 
-        fig.add_hline(y=R_bar, row=2, col=1, line_color="green")
-        fig.add_hline(y=UCL_R, row=2, col=1, line_color="red")
-        fig.add_hline(y=LCL_R, row=2, col=1, line_color="red")
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=R,
+                mode='lines+markers',
+                name='Range',
+                line=dict(color='black', width=2),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_r
+                    ]
+                )
+            ),
+            row=2,
+            col=1
+        )
 
-        fig.update_layout(height=700, title=f"X̄-R Control Chart (n={n})")
+        # XBAR LIMITS
+
+        fig.add_hline(
+            y=xbar_bar,
+            line_color="green",
+            annotation_text=f"CL = {xbar_bar:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_xbar,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"UCL = {UCL_xbar:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_xbar,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"LCL = {LCL_xbar:.2f}",
+            row=1,
+            col=1
+        )
+
+        # R LIMITS
+
+        fig.add_hline(
+            y=R_bar,
+            line_color="green",
+            annotation_text=f"CL = {R_bar:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_R,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"UCL = {UCL_R:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_R,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"LCL = {LCL_R:.2f}",
+            row=2,
+            col=1
+        )
 
     # =========================
     # XBAR-S CHART
     # =========================
+
     elif chart_type == "xbar_s":
 
         if n not in A3_TABLE:
             return "❌ Unsupported subgroup size for Xbar-S"
 
         xbar = np.mean(subgroups, axis=1)
+
         S = np.std(subgroups, axis=1, ddof=1)
 
         xbar_bar = np.mean(xbar)
+
         S_bar = np.mean(S)
 
         A3 = A3_TABLE[n]
@@ -198,56 +312,198 @@ def upload_file():
         UCL_S = B4 * S_bar
         LCL_S = B3 * S_bar
 
-        # Detect
+        # Out of control detection
+
         out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+
         out_s = (S > UCL_S) | (S < LCL_S)
 
         total_out = np.sum(out_x) + np.sum(out_s)
 
         if total_out > 0:
-            insight = f"⚠️ {total_out} point(s) out of control → Process is NOT stable"
+            insight = (
+                f"⚠️ {total_out} point(s) out of control "
+                f"→ Process is NOT stable"
+            )
+
         else:
             insight = "✅ Process is stable"
 
-        # Plot
+        subgroup_numbers = list(range(1, len(xbar) + 1))
+
+        # =========================
+        # PLOT
+        # =========================
+
         fig = make_subplots(
-            rows=2, cols=1,
+            rows=2,
+            cols=1,
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "S Chart")
         )
 
-        fig.add_trace(go.Scatter(
-            y=xbar,
-            mode='lines+markers',
-            marker=dict(color=['red' if v else 'blue' for v in out_x])
-        ), row=1, col=1)
+        # XBAR TRACE
 
-        fig.add_trace(go.Scatter(
-            y=S,
-            mode='lines+markers',
-            marker=dict(color=['red' if v else 'blue' for v in out_s])
-        ), row=2, col=1)
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=xbar,
+                mode='lines+markers',
+                name='Subgroup Mean',
+                line=dict(color='black', width=2),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_x
+                    ]
+                )
+            ),
+            row=1,
+            col=1
+        )
 
-        fig.add_hline(y=xbar_bar, row=1, col=1, line_color="green")
-        fig.add_hline(y=UCL_xbar, row=1, col=1, line_color="red")
-        fig.add_hline(y=LCL_xbar, row=1, col=1, line_color="red")
+        # S TRACE
 
-        fig.add_hline(y=S_bar, row=2, col=1, line_color="green")
-        fig.add_hline(y=UCL_S, row=2, col=1, line_color="red")
-        fig.add_hline(y=LCL_S, row=2, col=1, line_color="red")
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=S,
+                mode='lines+markers',
+                name='Std Dev',
+                line=dict(color='black', width=2),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_s
+                    ]
+                )
+            ),
+            row=2,
+            col=1
+        )
 
-        fig.update_layout(height=700, title=f"X̄-S Control Chart (n={n})")
+        # XBAR LIMITS
+
+        fig.add_hline(
+            y=xbar_bar,
+            line_color="green",
+            annotation_text=f"CL = {xbar_bar:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_xbar,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"UCL = {UCL_xbar:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_xbar,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"LCL = {LCL_xbar:.2f}",
+            row=1,
+            col=1
+        )
+
+        # S LIMITS
+
+        fig.add_hline(
+            y=S_bar,
+            line_color="green",
+            annotation_text=f"CL = {S_bar:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_S,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"UCL = {UCL_S:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_S,
+            line_color="red",
+            line_dash="dash",
+            annotation_text=f"LCL = {LCL_S:.2f}",
+            row=2,
+            col=1
+        )
 
     else:
         return "❌ Invalid chart type selected"
 
+    # =========================
+    # COMMON LAYOUT
+    # =========================
+
+    fig.update_layout(
+        height=850,
+        showlegend=False,
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        font=dict(size=14),
+        title_x=0.5
+    )
+
+    fig.update_xaxes(
+        title_text="Subgroup Number",
+        row=2,
+        col=1
+    )
+
+    fig.update_yaxes(
+        title_text="Subgroup Mean",
+        row=1,
+        col=1
+    )
+
+    if chart_type == "xbar_r":
+
+        fig.update_yaxes(
+            title_text="Range",
+            row=2,
+            col=1
+        )
+
+    else:
+
+        fig.update_yaxes(
+            title_text="Std Dev (s)",
+            row=2,
+            col=1
+        )
+
     graph_html = fig.to_html(full_html=False)
-    os.remove(filepath)  # delete file after processing
-    return render_template('index.html', graph=graph_html, insight=insight, warning=warning)
+
+    # Delete uploaded file after processing
+    os.remove(filepath)
+
+    return render_template(
+        'index.html',
+        graph=graph_html,
+        insight=insight,
+        warning=warning
+    )
 
 
-# Run app
+# =========================
+# RUN APP
+# =========================
+
 if __name__ == '__main__':
+
     print("🚀 Starting SPC Server...")
     print("👉 Open http://127.0.0.1:5000 in browser")
+
     app.run(debug=True)
