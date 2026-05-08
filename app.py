@@ -25,6 +25,34 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+def check_rule2(points, center_line):
+
+    consecutive_above = 0
+    consecutive_below = 0
+
+    for point in points:
+
+        if point > center_line:
+
+            consecutive_above += 1
+            consecutive_below = 0
+
+        elif point < center_line:
+
+            consecutive_below += 1
+            consecutive_above = 0
+
+        else:
+            consecutive_above = 0
+            consecutive_below = 0
+
+        if consecutive_above >= 7:
+            return True, "⚠️ Western Electric Rule 2 triggered: 7 consecutive points above center line"
+
+        if consecutive_below >= 7:
+            return True, "⚠️ Western Electric Rule 2 triggered: 7 consecutive points below center line"
+
+    return False, None
 
 # =========================
 # HOME ROUTE
@@ -166,6 +194,11 @@ def upload_file():
         total_out = np.sum(out_x) + np.sum(out_r)
 
         analysis_messages = []
+
+        rule2_triggered, rule2_message = check_rule2(xbar, xbar_bar)
+
+        if rule2_triggered:
+            analysis_messages.append(rule2_message)
 
         if np.sum(out_x) == 0:
             analysis_messages.append(
@@ -342,6 +375,11 @@ def upload_file():
         total_out = np.sum(out_x) + np.sum(out_s)
 
         analysis_messages = []
+
+        rule2_triggered, rule2_message = check_rule2(xbar, xbar_bar)
+
+        if rule2_triggered:
+            analysis_messages.append(rule2_message)
 
         if np.sum(out_x) == 0:
             analysis_messages.append(
