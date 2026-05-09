@@ -135,16 +135,40 @@ def capability_analysis():
     insight = "<br>".join(insight_messages)
 
     # =========================
-    # Histogram
+    # Histogram + Normal Curve
     # =========================
 
     fig = go.Figure()
+
+    # Histogram
 
     fig.add_trace(
         go.Histogram(
             x=data,
             nbinsx=20,
-            name='Process Data'
+            histnorm='probability density',
+            name='Process Data',
+            opacity=0.75
+        )
+    )
+
+    # Normal distribution curve
+
+    x_values = np.linspace(min(data), max(data), 200)
+
+    y_values = (
+        1 / (std_dev * np.sqrt(2 * np.pi))
+    ) * np.exp(
+        -((x_values - mean) ** 2) / (2 * std_dev ** 2)
+    )
+
+    fig.add_trace(
+        go.Scatter(
+            x=x_values,
+            y=y_values,
+            mode='lines',
+            name='Normal Curve',
+            line=dict(width=3)
         )
     )
 
@@ -174,7 +198,8 @@ def capability_analysis():
         title='Process Capability Histogram',
         plot_bgcolor='white',
         paper_bgcolor='white',
-        height=500
+        height=500,
+        bargap=0.05
     )
 
     graph_html = fig.to_html(full_html=False)
