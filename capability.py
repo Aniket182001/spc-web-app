@@ -209,11 +209,18 @@ def capability_analysis():
 
     fig.add_trace(
         go.Histogram(
-            x=data,
-            nbinsx=20,
-            histnorm='probability density',
-            name='Process Data',
-            opacity=0.75
+        x=data,
+        nbinsx=20,
+        histnorm='probability density',
+        name='Process Data',
+        opacity=0.75,
+        marker=dict(
+            color='#60a5fa',
+            line=dict(
+                color='white',
+                width=1
+                )
+            )
         )
     )
 
@@ -233,7 +240,10 @@ def capability_analysis():
             y=y_values,
             mode='lines',
             name='Normal Curve',
-            line=dict(width=3)
+            line=dict(
+            color='#1e3a8a',
+            width=4
+             )
         )
     )
 
@@ -241,30 +251,42 @@ def capability_analysis():
 
     fig.add_vline(
         x=lsl,
-        line_color='red',
+        line_color='#dc2626',
         line_dash='dash',
         annotation_text=f"LSL = {lsl}"
     )
 
     fig.add_vline(
         x=usl,
-        line_color='red',
+        line_color='#dc2626',
         line_dash='dash',
         annotation_text=f"USL = {usl}"
     )
 
     fig.add_vline(
         x=mean,
-        line_color='green',
+        line_color='#16a34a',
         annotation_text=f"Mean = {mean:.2f}"
     )
 
+    fig.add_vrect(
+        x0=lsl,
+        x1=usl,
+        fillcolor='green',
+        opacity=0.08,
+        line_width=0
+    )
+
     fig.update_layout(
-        title='Process Capability Histogram',
+        title='Process Capability Analysis',
+        title_x=0.5,
         plot_bgcolor='white',
         paper_bgcolor='white',
-        height=500,
-        bargap=0.05
+        height=550,
+        bargap=0.05,
+        font=dict(size=14),
+        xaxis_title='Measurement Values',
+        yaxis_title='Density'
     )
 
     graph_html = fig.to_html(full_html=False)
