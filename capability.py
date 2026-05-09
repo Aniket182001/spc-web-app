@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 import pandas as pd
 import numpy as np
+from scipy.stats import norm
 import plotly.graph_objs as go
 import os
 import time
@@ -107,6 +108,21 @@ def capability_analysis():
     ppl = (mean - lsl) / (3 * std_dev)
 
     ppk = min(ppu, ppl)
+
+    # Sigma level estimation
+
+    sigma_level = 3 * cpk
+
+    # Yield estimation
+
+    defect_probability = (
+        norm.cdf(lsl, mean, std_dev)
+        + (1 - norm.cdf(usl, mean, std_dev))
+    )
+
+    yield_percent = (1 - defect_probability) * 100
+
+    defect_percent = defect_probability * 100
 
     # =========================
     # Insights
@@ -226,7 +242,10 @@ def capability_analysis():
     'cp': round(cp, 4),
     'cpk': round(cpk, 4),
     'pp': round(pp, 4),
-    'ppk': round(ppk, 4)
+    'ppk': round(ppk, 4),
+    'sigma_level': round(sigma_level, 2),
+    'yield_percent': round(yield_percent, 4),
+    'defect_percent': round(defect_percent, 4)
 }
 
     return render_template(
