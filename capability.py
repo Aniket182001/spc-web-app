@@ -130,6 +130,42 @@ def capability_analysis():
 
     insight_messages = []
 
+    # Capability interpretation
+
+    if cpk < 1:
+
+        capability_rating = "❌ POOR"
+
+        capability_message = (
+            "Process capability is below minimum acceptable level."
+        )
+
+    elif cpk < 1.33:
+
+        capability_rating = "⚠️ ACCEPTABLE"
+
+        capability_message = (
+            "Process is acceptable but improvement is recommended."
+        )
+
+    elif cpk < 1.67:
+
+        capability_rating = "✅ GOOD"
+
+        capability_message = (
+            "Process meets common industrial capability standards."
+        )
+
+    else:
+
+        capability_rating = "🔥 EXCELLENT"
+
+        capability_message = (
+            "Process capability is excellent with very low expected defects."
+        )
+
+    #
+
     if cpk >= 1.33:
 
         insight_messages.append(
@@ -245,7 +281,9 @@ def capability_analysis():
     'ppk': round(ppk, 4),
     'sigma_level': round(sigma_level, 2),
     'yield_percent': round(yield_percent, 4),
-    'defect_percent': round(defect_percent, 4)
+    'defect_percent': round(defect_percent, 4),
+    'capability_rating': capability_rating,
+    'capability_message': capability_message
 }
 
     return render_template(
