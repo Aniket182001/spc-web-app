@@ -88,6 +88,8 @@ def capability_analysis():
 
     std_dev = np.std(data, ddof=1)
 
+    # Cp / Cpk calculations
+
     cp = (usl - lsl) / (6 * std_dev)
 
     cpu = (usl - mean) / (3 * std_dev)
@@ -95,6 +97,16 @@ def capability_analysis():
     cpl = (mean - lsl) / (3 * std_dev)
 
     cpk = min(cpu, cpl)
+
+    # Pp / Ppk calculations
+
+    pp = (usl - lsl) / (6 * std_dev)
+
+    ppu = (usl - mean) / (3 * std_dev)
+
+    ppl = (mean - lsl) / (3 * std_dev)
+
+    ppk = min(ppu, ppl)
 
     # =========================
     # Insights
@@ -209,11 +221,13 @@ def capability_analysis():
     os.remove(filepath)
 
     results = {
-        'mean': round(mean, 4),
-        'std_dev': round(std_dev, 4),
-        'cp': round(cp, 4),
-        'cpk': round(cpk, 4)
-    }
+    'mean': round(mean, 4),
+    'std_dev': round(std_dev, 4),
+    'cp': round(cp, 4),
+    'cpk': round(cpk, 4),
+    'pp': round(pp, 4),
+    'ppk': round(ppk, 4)
+}
 
     return render_template(
         'capability.html',
