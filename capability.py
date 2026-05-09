@@ -36,6 +36,14 @@ def capability_home():
 def capability_analysis():
 
     file = request.files['file']
+
+    if file.filename == '':
+
+        return render_template(
+            'capability.html',
+            insight="❌ Please select a file."
+        )
+
     if not allowed_file(file.filename):
 
         return render_template(
