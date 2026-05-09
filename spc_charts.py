@@ -5,6 +5,7 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import os
 import time
+from utils import allowed_file
 
 from werkzeug.utils import secure_filename
 
@@ -74,8 +75,19 @@ def upload_file():
 
     file = request.files['file']
 
-    if file.filename == "":
-        return "❌ No file selected"
+    if file.filename == '':
+
+        return render_template(
+            'index.html',
+            insight="❌ Please select a file."
+        )
+
+    if not allowed_file(file.filename):
+
+        return render_template(
+            'index.html',
+            insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file."
+        )
 
     chart_type = request.form['chart']
     subgroup_size = int(request.form['subgroup_size'])
