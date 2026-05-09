@@ -5,8 +5,8 @@ from scipy.stats import norm
 import plotly.graph_objs as go
 import os
 import time
-
 from werkzeug.utils import secure_filename
+from pdf_generator import generate_capability_pdf
 
 capability_bp = Blueprint('capability', __name__)
 
@@ -135,7 +135,7 @@ def capability_analysis():
 
     if cpk < 1:
 
-        capability_rating = "❌ POOR"
+        capability_rating = "POOR"
 
         capability_message = (
             "Process capability is below minimum acceptable level."
@@ -143,7 +143,7 @@ def capability_analysis():
 
     elif cpk < 1.33:
 
-        capability_rating = "⚠️ ACCEPTABLE"
+        capability_rating = "ACCEPTABLE"
 
         capability_message = (
             "Process is acceptable but improvement is recommended."
@@ -151,7 +151,7 @@ def capability_analysis():
 
     elif cpk < 1.67:
 
-        capability_rating = "✅ GOOD"
+        capability_rating = "GOOD"
 
         capability_message = (
             "Process meets common industrial capability standards."
@@ -159,7 +159,7 @@ def capability_analysis():
 
     else:
 
-        capability_rating = "🔥 EXCELLENT"
+        capability_rating = "EXCELLENT"
 
         capability_message = (
             "Process capability is excellent with very low expected defects."
@@ -290,6 +290,9 @@ def capability_analysis():
     )
 
     graph_html = fig.to_html(full_html=False)
+    chart_image_path = "static/capability_chart.png"
+
+    fig.write_image(chart_image_path)
 
     # Delete uploaded file
 
@@ -309,6 +312,14 @@ def capability_analysis():
     'capability_message': capability_message,
     'dpmo': round(dpmo, 2)
 }
+    
+    pdf_path = "static/capability_report.pdf"
+
+    generate_capability_pdf(
+        results,
+        chart_image_path,
+        pdf_path
+    )
 
     return render_template(
         'capability.html',
