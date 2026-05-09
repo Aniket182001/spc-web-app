@@ -123,6 +123,7 @@ def capability_analysis():
     yield_percent = (1 - defect_probability) * 100
 
     defect_percent = defect_probability * 100
+    dpmo = defect_probability * 1_000_000
 
     # =========================
     # Insights
@@ -283,7 +284,8 @@ def capability_analysis():
     'yield_percent': round(yield_percent, 4),
     'defect_percent': round(defect_percent, 4),
     'capability_rating': capability_rating,
-    'capability_message': capability_message
+    'capability_message': capability_message,
+    'dpmo': round(dpmo, 2)
 }
 
     return render_template(
