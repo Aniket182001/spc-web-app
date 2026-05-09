@@ -1,8 +1,10 @@
+import os
 from flask import Flask
 from spc_charts import spc_bp
 from capability import capability_bp
 
 app = Flask(__name__)
+os.makedirs("static", exist_ok=True)
 
 # Register modules
 app.register_blueprint(spc_bp)

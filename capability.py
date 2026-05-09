@@ -7,6 +7,7 @@ import os
 import time
 from werkzeug.utils import secure_filename
 from pdf_generator import generate_capability_pdf
+from utils import allowed_file
 
 capability_bp = Blueprint('capability', __name__)
 
@@ -35,6 +36,12 @@ def capability_home():
 def capability_analysis():
 
     file = request.files['file']
+    if not allowed_file(file.filename):
+
+        return render_template(
+            'capability.html',
+            insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file."
+        )
 
     lsl = float(request.form['lsl'])
     usl = float(request.form['usl'])
