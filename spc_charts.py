@@ -186,6 +186,12 @@ def upload_file():
 
         xbar_bar = np.mean(xbar)
 
+        process_std = np.std(data, ddof=1)
+
+        estimated_usl = xbar_bar + (3 * process_std)
+
+        estimated_lsl = xbar_bar - (3 * process_std)
+
         R_bar = np.mean(R)
 
         A2 = A2_TABLE[n]
@@ -324,6 +330,24 @@ def upload_file():
             col=1
         )
 
+        fig.add_hline(
+        y=estimated_usl,
+        line_color="blue",
+        line_dash="dot",
+        annotation_text=f"Estimated USL = {estimated_usl:.2f}",
+        row=1,
+        col=1
+        )
+
+        fig.add_hline(
+        y=estimated_lsl,
+        line_color="blue",
+        line_dash="dot",
+        annotation_text=f"Estimated LSL = {estimated_lsl:.2f}",
+        row=1,
+        col=1
+        )
+
         # R LIMITS
 
         fig.add_hline(
@@ -352,6 +376,7 @@ def upload_file():
             col=1
         )
 
+
     # =========================
     # XBAR-S CHART
     # =========================
@@ -366,6 +391,11 @@ def upload_file():
         S = np.std(subgroups, axis=1, ddof=1)
 
         xbar_bar = np.mean(xbar)
+        process_std = np.std(data, ddof=1)
+
+        estimated_usl = xbar_bar + (3 * process_std)
+
+        estimated_lsl = xbar_bar - (3 * process_std)
 
         S_bar = np.mean(S)
 
@@ -505,6 +535,24 @@ def upload_file():
             col=1
         )
 
+        fig.add_hline(
+            y=estimated_usl,
+            line_color="blue",
+            line_dash="dot",
+            annotation_text=f"Estimated USL = {estimated_usl:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=estimated_lsl,
+            line_color="blue",
+            line_dash="dot",
+            annotation_text=f"Estimated LSL = {estimated_lsl:.2f}",
+            row=1,
+            col=1
+        )
+
         # S LIMITS
 
         fig.add_hline(
@@ -577,7 +625,20 @@ def upload_file():
             col=1
         )
 
-    graph_html = fig.to_html(full_html=False)
+    graph_html = fig.to_html(
+        full_html=False,
+        config={
+            'displaylogo': False,
+            'modeBarButtonsToRemove': [
+            'lasso2d',
+            'select2d',
+            'autoScale2d',
+            'toggleSpikelines',
+            'hoverCompareCartesian',
+            'hoverClosestCartesian'
+        ]
+        }
+    )
 
     # Delete uploaded file after processing
     os.remove(filepath)
