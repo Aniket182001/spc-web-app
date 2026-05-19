@@ -36,7 +36,8 @@
             font-weight: bold;
         }
 
-        input {
+        input,
+        select {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
@@ -91,10 +92,12 @@
             <label>Upload Data File</label>
             <input type="file" name="file" required>
 
-            <label>Lower Specification Limit (LSL)</label>
+           <label>LSL:</label>
             <input type="number" step="any" name="lsl" required>
 
-            <label>Upper Specification Limit (USL)</label>
+            <br><br>
+
+            <label>USL:</label>
             <input type="number" step="any" name="usl" required>
 
             <button type="submit">

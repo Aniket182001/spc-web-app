@@ -51,8 +51,6 @@ def capability_analysis():
             insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file."
         )
 
-    lsl = float(request.form['lsl'])
-    usl = float(request.form['usl'])
 
     # Save file
 
@@ -103,6 +101,9 @@ def capability_analysis():
     mean = np.mean(data)
 
     std_dev = np.std(data, ddof=1)
+
+    lsl = float(request.form['lsl'])
+    usl = float(request.form['usl'])
 
     # Cp / Cpk calculations
 
