@@ -92,7 +92,10 @@ def capability_analysis():
 
     if len(data) == 0:
 
-        return "❌ No valid numeric data found"
+        return render_template(
+            'capability.html',
+            insight="❌ No valid numeric data found."
+        )
 
     # =========================
     # Capability Calculations
@@ -102,8 +105,6 @@ def capability_analysis():
 
     std_dev = np.std(data, ddof=1)
 
-    lsl = float(request.form['lsl'])
-    usl = float(request.form['usl'])
 
     # Cp / Cpk calculations
 

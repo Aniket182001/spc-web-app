@@ -90,7 +90,12 @@ def upload_file():
         )
 
     chart_type = request.form['chart']
+
     subgroup_size = int(request.form['subgroup_size'])
+
+    lsl_input = request.form.get('lsl')
+
+    usl_input = request.form.get('usl')
 
     # Save file
     filename = secure_filename(file.filename)
@@ -188,9 +193,17 @@ def upload_file():
 
         process_std = np.std(data, ddof=1)
 
-        estimated_usl = xbar_bar + (3 * process_std)
+        if usl_input and lsl_input:
 
-        estimated_lsl = xbar_bar - (3 * process_std)
+            estimated_usl = float(usl_input)
+
+            estimated_lsl = float(lsl_input)
+
+        else:
+
+            estimated_usl = xbar_bar + (3 * process_std)
+
+            estimated_lsl = xbar_bar - (3 * process_std)
 
         R_bar = np.mean(R)
 
@@ -391,11 +404,20 @@ def upload_file():
         S = np.std(subgroups, axis=1, ddof=1)
 
         xbar_bar = np.mean(xbar)
+        
         process_std = np.std(data, ddof=1)
 
-        estimated_usl = xbar_bar + (3 * process_std)
+        if usl_input and lsl_input:
 
-        estimated_lsl = xbar_bar - (3 * process_std)
+            estimated_usl = float(usl_input)
+
+            estimated_lsl = float(lsl_input)
+
+        else:
+
+            estimated_usl = xbar_bar + (3 * process_std)
+
+            estimated_lsl = xbar_bar - (3 * process_std)
 
         S_bar = np.mean(S)
 
