@@ -191,20 +191,6 @@ def upload_file():
 
         xbar_bar = np.mean(xbar)
 
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            estimated_usl = float(usl_input)
-
-            estimated_lsl = float(lsl_input)
-
-        else:
-
-            estimated_usl = xbar_bar + (3 * process_std)
-
-            estimated_lsl = xbar_bar - (3 * process_std)
-
         R_bar = np.mean(R)
 
         A2 = A2_TABLE[n]
@@ -347,7 +333,7 @@ def upload_file():
         y=estimated_usl,
         line_color="blue",
         line_dash="dot",
-        annotation_text=f"Estimated USL = {estimated_usl:.2f}",
+        annotation_text=f"USL = {estimated_usl:.2f}",
         row=1,
         col=1
         )
@@ -356,7 +342,7 @@ def upload_file():
         y=estimated_lsl,
         line_color="blue",
         line_dash="dot",
-        annotation_text=f"Estimated LSL = {estimated_lsl:.2f}",
+        annotation_text=f"LSL = {estimated_lsl:.2f}",
         row=1,
         col=1
         )
