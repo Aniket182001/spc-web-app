@@ -116,7 +116,7 @@
         <!-- TITLE -->
         <!-- ========================================= -->
 
-        <h1>📊 SPC Control Chart Tool</h1>
+        <h1>Control Chart Tool</h1>
 
         <!-- ========================================= -->
         <!-- FORM CARD -->
@@ -180,7 +180,6 @@
                         name="subgroup_size"
                         min="2"
                         max="25"
-                        required
                     >
 
                 </div>
@@ -283,6 +282,10 @@
 
     <script>
 
+        const subgroupInput = document.getElementById(
+        "subgroup-input"
+        );
+
         const chartSelect = document.getElementById(
             "chart-select"
         );
@@ -317,6 +320,8 @@
                 subgroupContainer.style.display = "none";
 
                 specLimitContainer.style.display = "none";
+
+                subgroupInput.required = false;
             }
 
             // =====================================
@@ -333,6 +338,8 @@
                 subgroupContainer.style.display = "none";
 
                 specLimitContainer.style.display = "none";
+
+                subgroupInput.required = false;
             }
 
             // =====================================
@@ -348,6 +355,8 @@
                 subgroupContainer.style.display = "none";
 
                 specLimitContainer.style.display = "block";
+
+                subgroupInput.required = false;
             }
 
             // =====================================
@@ -361,6 +370,8 @@
                 subgroupContainer.style.display = "block";
 
                 specLimitContainer.style.display = "block";
+
+                subgroupInput.required = true;
             }
         }
 

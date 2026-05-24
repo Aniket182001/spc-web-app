@@ -127,8 +127,14 @@ def upload_file():
         ''
     ).strip()
 
-    subgroup_size = int(
-        request.form['subgroup_size']
+    subgroup_size_input = request.form.get(
+    'subgroup_size'
+    )
+
+    subgroup_size = (
+        int(subgroup_size_input)
+        if subgroup_size_input
+        else None
     )
 
     lsl_input = request.form.get('lsl')
@@ -941,8 +947,125 @@ def upload_file():
             annotation_text=f"CL = {p_bar:.4f}"
         )
 
-    else:
 
+    
+    # =====================================================
+    # NP CHART
+    # =====================================================
+
+    elif chart_type == "np_chart":
+
+        defectives = df.iloc[:, 0].values
+
+        sample_size = int(sample_size_input)
+
+        p_bar = np.mean(defectives) / sample_size
+
+        np_values = defectives
+
+        CL = sample_size * p_bar
+
+        sigma = np.sqrt(
+            sample_size * p_bar * (1 - p_bar)
+        )
+
+        UCL = CL + (3 * sigma)
+
+        LCL = CL - (3 * sigma)
+
+        LCL = max(LCL, 0)
+
+        out_np = (
+            (np_values > UCL)
+            | (np_values < LCL)
+        )
+
+        subgroup_numbers = list(
+            range(1, len(np_values) + 1)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
+
+        analysis_messages = []
+
+        if np.sum(out_np) == 0:
+
+            analysis_messages.append(
+                "✅ Number of defectives is stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_np)} point(s) "
+                f"outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total samples analyzed: {len(np_values)}"
+        )
+
+        insight = "<br>".join(analysis_messages)
+
+        # -------------------------------------------------
+        # PLOT
+        # -------------------------------------------------
+
+        fig = go.Figure()
+
+        chart_title = (
+            f"{chart_name} - NP Chart"
+            if chart_name
+            else "NP Chart"
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=np_values,
+                mode='lines+markers',
+                name='Defectives',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_np
+                    ]
+                )
+            )
+        )
+
+        fig.add_hline(
+            y=CL,
+            line_color='green',
+            annotation_text=f"CL = {CL:.2f}"
+        )
+
+        fig.add_hline(
+            y=UCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"UCL = {UCL:.2f}"
+        )
+
+        fig.add_hline(
+            y=LCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"LCL = {LCL:.2f}"
+        )
+
+    # -------------------------------------------------
+    # End Block - No more chart types below this point
+    # -------------------------------------------------
+    
+    else:
         return "❌ Invalid chart type selected"
 
     # =====================================================
