@@ -191,17 +191,31 @@ def upload_file():
 
         xbar_bar = np.mean(xbar)
 
-        R_bar = np.mean(R)
+        process_std = np.std(data, ddof=1)
 
-        A2 = A2_TABLE[n]
-        D3 = D3_TABLE[n]
-        D4 = D4_TABLE[n]
+        if usl_input and lsl_input:
 
-        UCL_xbar = xbar_bar + A2 * R_bar
-        LCL_xbar = xbar_bar - A2 * R_bar
+            usl = float(usl_input)
 
-        UCL_R = D4 * R_bar
-        LCL_R = D3 * R_bar
+            lsl = float(lsl_input)
+
+        else:
+
+            usl = xbar_bar + (3 * process_std)
+
+            lsl = xbar_bar - (3 * process_std)
+
+            R_bar = np.mean(R)
+
+            A2 = A2_TABLE[n]
+            D3 = D3_TABLE[n]
+            D4 = D4_TABLE[n]
+
+            UCL_xbar = xbar_bar + A2 * R_bar
+            LCL_xbar = xbar_bar - A2 * R_bar
+
+            UCL_R = D4 * R_bar
+            LCL_R = D3 * R_bar
 
         # Out of control detection
 
@@ -330,19 +344,19 @@ def upload_file():
         )
 
         fig.add_hline(
-        y=estimated_usl,
+        y=usl,
         line_color="blue",
         line_dash="dot",
-        annotation_text=f"USL = {estimated_usl:.2f}",
+        annotation_text=f"USL = {usl:.2f}",
         row=1,
         col=1
         )
 
         fig.add_hline(
-        y=estimated_lsl,
+        y=lsl,
         line_color="blue",
         line_dash="dot",
-        annotation_text=f"LSL = {estimated_lsl:.2f}",
+        annotation_text=f"LSL = {lsl:.2f}",
         row=1,
         col=1
         )
@@ -395,15 +409,15 @@ def upload_file():
 
         if usl_input and lsl_input:
 
-            estimated_usl = float(usl_input)
+            usl = float(usl_input)
 
-            estimated_lsl = float(lsl_input)
+            lsl = float(lsl_input)
 
         else:
 
-            estimated_usl = xbar_bar + (3 * process_std)
+            usl = xbar_bar + (3 * process_std)
 
-            estimated_lsl = xbar_bar - (3 * process_std)
+            lsl = xbar_bar - (3 * process_std)
 
         S_bar = np.mean(S)
 
@@ -544,19 +558,19 @@ def upload_file():
         )
 
         fig.add_hline(
-            y=estimated_usl,
+            y=usl,
             line_color="blue",
             line_dash="dot",
-            annotation_text=f"Estimated USL = {estimated_usl:.2f}",
+            annotation_text=f"USL = {usl:.2f}",
             row=1,
             col=1
         )
 
         fig.add_hline(
-            y=estimated_lsl,
+            y=lsl,
             line_color="blue",
             line_dash="dot",
-            annotation_text=f"Estimated LSL = {estimated_lsl:.2f}",
+            annotation_text=f"LSL = {lsl:.2f}",
             row=1,
             col=1
         )
