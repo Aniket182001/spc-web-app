@@ -5,8 +5,8 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import os
 import time
-from utils import allowed_file
 
+from utils import allowed_file
 from werkzeug.utils import secure_filename
 
 from spc_constants import (
@@ -18,7 +18,10 @@ from spc_constants import (
     B4_TABLE
 )
 
-# Create Blueprint
+# =========================================================
+# BLUEPRINT SETUP
+# =========================================================
+
 spc_bp = Blueprint('spc', __name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -26,6 +29,11 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+# =========================================================
+# WESTERN ELECTRIC RULE 2
+# =========================================================
 
 def check_rule2(points, center_line):
 
@@ -45,30 +53,45 @@ def check_rule2(points, center_line):
             consecutive_above = 0
 
         else:
+
             consecutive_above = 0
             consecutive_below = 0
 
         if consecutive_above >= 7:
-            return True, "⚠️ Western Electric Rule 2 triggered: 7 consecutive points above center line"
+            return True, (
+                "⚠️ Western Electric Rule 2 triggered: "
+                "7 consecutive points above center line"
+            )
 
         if consecutive_below >= 7:
-            return True, "⚠️ Western Electric Rule 2 triggered: 7 consecutive points below center line"
+            return True, (
+                "⚠️ Western Electric Rule 2 triggered: "
+                "7 consecutive points below center line"
+            )
 
     return False, None
 
-# =========================
+
+# =========================================================
 # HOME ROUTE
-# =========================
+# =========================================================
+
 @spc_bp.route('/')
 def index():
+
     return render_template('index.html')
 
 
-# =========================
+# =========================================================
 # UPLOAD + PROCESS
-# =========================
+# =========================================================
+
 @spc_bp.route('/upload', methods=['POST'])
 def upload_file():
+
+    # =====================================================
+    # FILE VALIDATION
+    # =====================================================
 
     if 'file' not in request.files:
         return "❌ No file part in request"
@@ -86,125 +109,167 @@ def upload_file():
 
         return render_template(
             'index.html',
-            insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file."
+            insight=(
+                "❌ Invalid file type. "
+                "Please upload CSV, TXT, XLSX, or XLS file."
+            )
         )
 
-    chart_type = request.form['chart']
-    chart_name = request.form.get('chart_name', '').strip()
+    # =====================================================
+    # FORM INPUTS
+    # =====================================================
 
-    subgroup_size = int(request.form['subgroup_size'])
+    chart_type = request.form['chart']
+
+    chart_name = request.form.get(
+        'chart_name',
+        ''
+    ).strip()
+
+    subgroup_size = int(
+        request.form['subgroup_size']
+    )
 
     lsl_input = request.form.get('lsl')
 
     usl_input = request.form.get('usl')
 
-    # Save file
+    # =====================================================
+    # SAVE FILE
+    # =====================================================
+
     filename = secure_filename(file.filename)
-    unique_name = str(int(time.time())) + "_" + filename
-    filepath = os.path.join(UPLOAD_FOLDER, unique_name)
+
+    unique_name = (
+        str(int(time.time())) + "_" + filename
+    )
+
+    filepath = os.path.join(
+        UPLOAD_FOLDER,
+        unique_name
+    )
 
     try:
+
         file.save(filepath)
 
     except PermissionError:
+
         return "❌ Please close the Excel file before uploading"
 
-    # =========================
+    # =====================================================
     # READ FILE
-    # =========================
+    # =====================================================
 
-    file_extension = os.path.splitext(filename)[1].lower()
+    file_extension = os.path.splitext(
+        filename
+    )[1].lower()
 
     if file_extension == '.csv':
-        df = pd.read_csv(filepath, header=None, encoding='latin1')
+
+        df = pd.read_csv(
+            filepath,
+            header=None,
+            encoding='latin1'
+        )
 
     elif file_extension == '.txt':
-        df = pd.read_csv(filepath, header=None, encoding='latin1')
+
+        df = pd.read_csv(
+            filepath,
+            header=None,
+            encoding='latin1'
+        )
 
     elif file_extension in ['.xlsx', '.xls']:
-        df = pd.read_excel(filepath, header=None)
+
+        df = pd.read_excel(
+            filepath,
+            header=None
+        )
 
     else:
+
         return "❌ Unsupported file format"
 
-    # =========================
+    # =====================================================
     # CLEAN DATA
-    # =========================
+    # =====================================================
 
-    df = df.apply(pd.to_numeric, errors='coerce')
+    df = df.apply(
+        pd.to_numeric,
+        errors='coerce'
+    )
+
     df = df.dropna()
 
-    data = df.iloc[:, 0].values
+    if len(df) == 0:
 
-    if len(data) == 0:
         return "❌ No valid numeric data found"
-
-    if len(data) < subgroup_size:
-        return "❌ Not enough data for subgrouping"
-
-    # =========================
-    # HANDLE INCOMPLETE SUBGROUPS
-    # =========================
-
-    total_points = len(data)
-    remainder = total_points % subgroup_size
-
-    dropped_points = 0
-    dropped_values = []
-
-    if remainder != 0:
-
-        dropped_points = remainder
-
-        dropped_values = data[-remainder:]
-
-        usable_length = total_points - remainder
-
-        data = data[:usable_length]
-
-    subgroups = data.reshape(-1, subgroup_size)
-
-    n = subgroup_size
 
     warning = None
 
-    if dropped_points > 0:
-
-        clean_values = [int(x) for x in dropped_values]
-
-        warning = (
-            f"⚠️ Last {dropped_points} point(s) were excluded: "
-            f"{clean_values} to form complete subgroups"
-        )
-
-    # =========================
+    # =====================================================
     # XBAR-R CHART
-    # =========================
+    # =====================================================
 
     if chart_type == "xbar_r":
 
+        data = df.iloc[:, 0].values
+
+        if len(data) < subgroup_size:
+            return "❌ Not enough data for subgrouping"
+
+        total_points = len(data)
+
+        remainder = total_points % subgroup_size
+
+        dropped_points = 0
+        dropped_values = []
+
+        if remainder != 0:
+
+            dropped_points = remainder
+
+            dropped_values = data[-remainder:]
+
+            usable_length = total_points - remainder
+
+            data = data[:usable_length]
+
+        subgroups = data.reshape(
+            -1,
+            subgroup_size
+        )
+
+        n = subgroup_size
+
+        if dropped_points > 0:
+
+            clean_values = [int(x) for x in dropped_values]
+
+            warning = (
+                f"⚠️ Last {dropped_points} point(s) "
+                f"were excluded: {clean_values} "
+                f"to form complete subgroups"
+            )
+
         if n not in A2_TABLE:
+
             return "❌ Unsupported subgroup size for Xbar-R"
+
+        # -------------------------------------------------
+        # CALCULATIONS
+        # -------------------------------------------------
 
         xbar = np.mean(subgroups, axis=1)
 
-        R = np.max(subgroups, axis=1) - np.min(subgroups, axis=1)
+        R = (
+            np.max(subgroups, axis=1)
+            - np.min(subgroups, axis=1)
+        )
 
         xbar_bar = np.mean(xbar)
-
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            usl = float(usl_input)
-
-            lsl = float(lsl_input)
-
-        else:
-
-            usl = xbar_bar + (3 * process_std)
-
-            lsl = xbar_bar - (3 * process_std)
 
         R_bar = np.mean(R)
 
@@ -212,43 +277,80 @@ def upload_file():
         D3 = D3_TABLE[n]
         D4 = D4_TABLE[n]
 
-        UCL_xbar = xbar_bar + A2 * R_bar
-        LCL_xbar = xbar_bar - A2 * R_bar
+        UCL_xbar = xbar_bar + (A2 * R_bar)
+        LCL_xbar = xbar_bar - (A2 * R_bar)
 
         UCL_R = D4 * R_bar
         LCL_R = D3 * R_bar
 
-        # Out of control detection
+        # -------------------------------------------------
+        # USL / LSL
+        # -------------------------------------------------
 
-        out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+        process_std = np.std(data, ddof=1)
 
-        out_r = (R > UCL_R) | (R < LCL_R)
+        if usl_input and lsl_input:
 
-        total_out = np.sum(out_x) + np.sum(out_r)
+            usl = float(usl_input)
+            lsl = float(lsl_input)
+
+        else:
+
+            usl = xbar_bar + (3 * process_std)
+            lsl = xbar_bar - (3 * process_std)
+
+        # -------------------------------------------------
+        # OUT OF CONTROL
+        # -------------------------------------------------
+
+        out_x = (
+            (xbar > UCL_xbar)
+            | (xbar < LCL_xbar)
+        )
+
+        out_r = (
+            (R > UCL_R)
+            | (R < LCL_R)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
 
         analysis_messages = []
 
-        rule2_triggered, rule2_message = check_rule2(xbar, xbar_bar)
+        rule2_triggered, rule2_message = check_rule2(
+            xbar,
+            xbar_bar
+        )
 
         if rule2_triggered:
             analysis_messages.append(rule2_message)
 
         if np.sum(out_x) == 0:
+
             analysis_messages.append(
                 "✅ Process average is stable within control limits"
             )
+
         else:
+
             analysis_messages.append(
-                f"⚠️ {np.sum(out_x)} subgroup mean point(s) outside control limits"
+                f"⚠️ {np.sum(out_x)} subgroup mean point(s) "
+                f"outside control limits"
             )
 
         if np.sum(out_r) == 0:
+
             analysis_messages.append(
                 "✅ Process variation is stable"
             )
+
         else:
+
             analysis_messages.append(
-                f"⚠️ {np.sum(out_r)} range point(s) outside control limits"
+                f"⚠️ {np.sum(out_r)} range point(s) "
+                f"outside control limits"
             )
 
         analysis_messages.append(
@@ -259,13 +361,15 @@ def upload_file():
             f"ℹ️ Subgroup size used: {n}"
         )
 
-        insight = "<br>".join(analysis_messages) 
+        insight = "<br>".join(analysis_messages)
 
-        subgroup_numbers = list(range(1, len(xbar) + 1))
+        subgroup_numbers = list(
+            range(1, len(xbar) + 1)
+        )
 
-        # =========================
+        # -------------------------------------------------
         # PLOT
-        # =========================
+        # -------------------------------------------------
 
         fig = make_subplots(
             rows=2,
@@ -273,7 +377,12 @@ def upload_file():
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "R Chart")
         )
-        chart_title = f"{chart_name} - X̄-R Control Chart" if chart_name else "X̄-R Control Chart"
+
+        chart_title = (
+            f"{chart_name} - X̄-R Control Chart"
+            if chart_name
+            else "X̄-R Control Chart"
+        )
 
         # XBAR TRACE
 
@@ -283,7 +392,10 @@ def upload_file():
                 y=xbar,
                 mode='lines+markers',
                 name='Subgroup Mean',
-                line=dict(color='black', width=2),
+                line=dict(
+                    color='black',
+                    width=2
+                ),
                 marker=dict(
                     size=8,
                     color=[
@@ -304,7 +416,10 @@ def upload_file():
                 y=R,
                 mode='lines+markers',
                 name='Range',
-                line=dict(color='black', width=2),
+                line=dict(
+                    color='black',
+                    width=2
+                ),
                 marker=dict(
                     size=8,
                     color=[
@@ -346,21 +461,21 @@ def upload_file():
         )
 
         fig.add_hline(
-        y=usl,
-        line_color="blue",
-        line_dash="dot",
-        annotation_text=f"USL = {usl:.2f}",
-        row=1,
-        col=1
+            y=usl,
+            line_color="blue",
+            line_dash="dot",
+            annotation_text=f"USL = {usl:.2f}",
+            row=1,
+            col=1
         )
 
         fig.add_hline(
-        y=lsl,
-        line_color="blue",
-        line_dash="dot",
-        annotation_text=f"LSL = {lsl:.2f}",
-        row=1,
-        col=1
+            y=lsl,
+            line_color="blue",
+            line_dash="dot",
+            annotation_text=f"LSL = {lsl:.2f}",
+            row=1,
+            col=1
         )
 
         # R LIMITS
@@ -391,35 +506,68 @@ def upload_file():
             col=1
         )
 
-
-    # =========================
+    # =====================================================
     # XBAR-S CHART
-    # =========================
+    # =====================================================
 
     elif chart_type == "xbar_s":
 
+        data = df.iloc[:, 0].values
+
+        if len(data) < subgroup_size:
+            return "❌ Not enough data for subgrouping"
+
+        total_points = len(data)
+
+        remainder = total_points % subgroup_size
+
+        dropped_points = 0
+        dropped_values = []
+
+        if remainder != 0:
+
+            dropped_points = remainder
+
+            dropped_values = data[-remainder:]
+
+            usable_length = total_points - remainder
+
+            data = data[:usable_length]
+
+        subgroups = data.reshape(
+            -1,
+            subgroup_size
+        )
+
+        n = subgroup_size
+
+        if dropped_points > 0:
+
+            clean_values = [int(x) for x in dropped_values]
+
+            warning = (
+                f"⚠️ Last {dropped_points} point(s) "
+                f"were excluded: {clean_values} "
+                f"to form complete subgroups"
+            )
+
         if n not in A3_TABLE:
+
             return "❌ Unsupported subgroup size for Xbar-S"
+
+        # -------------------------------------------------
+        # CALCULATIONS
+        # -------------------------------------------------
 
         xbar = np.mean(subgroups, axis=1)
 
-        S = np.std(subgroups, axis=1, ddof=1)
+        S = np.std(
+            subgroups,
+            axis=1,
+            ddof=1
+        )
 
         xbar_bar = np.mean(xbar)
-        
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            usl = float(usl_input)
-
-            lsl = float(lsl_input)
-
-        else:
-
-            usl = xbar_bar + (3 * process_std)
-
-            lsl = xbar_bar - (3 * process_std)
 
         S_bar = np.mean(S)
 
@@ -427,43 +575,80 @@ def upload_file():
         B3 = B3_TABLE[n]
         B4 = B4_TABLE[n]
 
-        UCL_xbar = xbar_bar + A3 * S_bar
-        LCL_xbar = xbar_bar - A3 * S_bar
+        UCL_xbar = xbar_bar + (A3 * S_bar)
+        LCL_xbar = xbar_bar - (A3 * S_bar)
 
         UCL_S = B4 * S_bar
         LCL_S = B3 * S_bar
 
-        # Out of control detection
+        # -------------------------------------------------
+        # USL / LSL
+        # -------------------------------------------------
 
-        out_x = (xbar > UCL_xbar) | (xbar < LCL_xbar)
+        process_std = np.std(data, ddof=1)
 
-        out_s = (S > UCL_S) | (S < LCL_S)
+        if usl_input and lsl_input:
 
-        total_out = np.sum(out_x) + np.sum(out_s)
+            usl = float(usl_input)
+            lsl = float(lsl_input)
+
+        else:
+
+            usl = xbar_bar + (3 * process_std)
+            lsl = xbar_bar - (3 * process_std)
+
+        # -------------------------------------------------
+        # OUT OF CONTROL
+        # -------------------------------------------------
+
+        out_x = (
+            (xbar > UCL_xbar)
+            | (xbar < LCL_xbar)
+        )
+
+        out_s = (
+            (S > UCL_S)
+            | (S < LCL_S)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
 
         analysis_messages = []
 
-        rule2_triggered, rule2_message = check_rule2(xbar, xbar_bar)
+        rule2_triggered, rule2_message = check_rule2(
+            xbar,
+            xbar_bar
+        )
 
         if rule2_triggered:
             analysis_messages.append(rule2_message)
 
         if np.sum(out_x) == 0:
+
             analysis_messages.append(
                 "✅ Process average is stable within control limits"
             )
+
         else:
+
             analysis_messages.append(
-                f"⚠️ {np.sum(out_x)} subgroup mean point(s) outside control limits"
+                f"⚠️ {np.sum(out_x)} subgroup mean point(s) "
+                f"outside control limits"
             )
 
         if np.sum(out_s) == 0:
+
             analysis_messages.append(
                 "✅ Process standard deviation is stable"
             )
+
         else:
+
             analysis_messages.append(
-                f"⚠️ {np.sum(out_s)} standard deviation point(s) outside control limits"
+                f"⚠️ {np.sum(out_s)} standard deviation point(s) "
+                f"outside control limits"
             )
 
         analysis_messages.append(
@@ -476,11 +661,13 @@ def upload_file():
 
         insight = "<br>".join(analysis_messages)
 
-        subgroup_numbers = list(range(1, len(xbar) + 1))
+        subgroup_numbers = list(
+            range(1, len(xbar) + 1)
+        )
 
-        # =========================
+        # -------------------------------------------------
         # PLOT
-        # =========================
+        # -------------------------------------------------
 
         fig = make_subplots(
             rows=2,
@@ -488,7 +675,12 @@ def upload_file():
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "S Chart")
         )
-        chart_title = f"{chart_name} - X̄-S Control Chart" if chart_name else "X̄-S Control Chart"
+
+        chart_title = (
+            f"{chart_name} - X̄-S Control Chart"
+            if chart_name
+            else "X̄-S Control Chart"
+        )
 
         # XBAR TRACE
 
@@ -498,7 +690,10 @@ def upload_file():
                 y=xbar,
                 mode='lines+markers',
                 name='Subgroup Mean',
-                line=dict(color='black', width=2),
+                line=dict(
+                    color='black',
+                    width=2
+                ),
                 marker=dict(
                     size=8,
                     color=[
@@ -519,7 +714,10 @@ def upload_file():
                 y=S,
                 mode='lines+markers',
                 name='Std Dev',
-                line=dict(color='black', width=2),
+                line=dict(
+                    color='black',
+                    width=2
+                ),
                 marker=dict(
                     size=8,
                     color=[
@@ -606,12 +804,151 @@ def upload_file():
             col=1
         )
 
+    # =====================================================
+    # P CHART
+    # =====================================================
+
+    elif chart_type == "p_chart":
+
+        if df.shape[1] < 2:
+
+            return (
+                "❌ P Chart requires 2 columns: "
+                "Defectives and Sample Size"
+            )
+
+        defectives = df.iloc[:, 0].values
+
+        sample_sizes = df.iloc[:, 1].values
+
+        p_values = defectives / sample_sizes
+
+        p_bar = (
+            np.sum(defectives)
+            / np.sum(sample_sizes)
+        )
+
+        UCL = p_bar + (
+            3 * np.sqrt(
+                (p_bar * (1 - p_bar))
+                / sample_sizes
+            )
+        )
+
+        LCL = p_bar - (
+            3 * np.sqrt(
+                (p_bar * (1 - p_bar))
+                / sample_sizes
+            )
+        )
+
+        LCL = np.maximum(LCL, 0)
+
+        out_p = (
+            (p_values > UCL)
+            | (p_values < LCL)
+        )
+
+        subgroup_numbers = list(
+            range(1, len(p_values) + 1)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
+
+        analysis_messages = []
+
+        if np.sum(out_p) == 0:
+
+            analysis_messages.append(
+                "✅ Process fraction defective is stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_p)} point(s) "
+                f"outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total samples analyzed: {len(p_values)}"
+        )
+
+        insight = "<br>".join(analysis_messages)
+
+        # -------------------------------------------------
+        # PLOT
+        # -------------------------------------------------
+
+        fig = go.Figure()
+
+        chart_title = (
+            f"{chart_name} - P Chart"
+            if chart_name
+            else "P Chart"
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=p_values,
+                mode='lines+markers',
+                name='Fraction Defective',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_p
+                    ]
+                )
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=UCL,
+                mode='lines',
+                name='UCL',
+                line=dict(
+                    color='red',
+                    dash='dash'
+                )
+            )
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=LCL,
+                mode='lines',
+                name='LCL',
+                line=dict(
+                    color='red',
+                    dash='dash'
+                )
+            )
+        )
+
+        fig.add_hline(
+            y=p_bar,
+            line_color='green',
+            annotation_text=f"CL = {p_bar:.4f}"
+        )
+
     else:
+
         return "❌ Invalid chart type selected"
 
-    # =========================
+    # =====================================================
     # COMMON LAYOUT
-    # =========================
+    # =====================================================
 
     fig.update_layout(
         title=chart_title,
@@ -623,50 +960,25 @@ def upload_file():
         title_x=0.5
     )
 
-    fig.update_xaxes(
-        title_text="Subgroup Number",
-        row=2,
-        col=1
-    )
-
-    fig.update_yaxes(
-        title_text="Subgroup Mean",
-        row=1,
-        col=1
-    )
-
-    if chart_type == "xbar_r":
-
-        fig.update_yaxes(
-            title_text="Range",
-            row=2,
-            col=1
-        )
-
-    else:
-
-        fig.update_yaxes(
-            title_text="Std Dev (s)",
-            row=2,
-            col=1
-        )
-
     graph_html = fig.to_html(
         full_html=False,
         config={
             'displaylogo': False,
             'modeBarButtonsToRemove': [
-            'lasso2d',
-            'select2d',
-            'autoScale2d',
-            'toggleSpikelines',
-            'hoverCompareCartesian',
-            'hoverClosestCartesian'
-        ]
+                'lasso2d',
+                'select2d',
+                'autoScale2d',
+                'toggleSpikelines',
+                'hoverCompareCartesian',
+                'hoverClosestCartesian'
+            ]
         }
     )
 
-    # Delete uploaded file after processing
+    # =====================================================
+    # DELETE FILE
+    # =====================================================
+
     os.remove(filepath)
 
     return render_template(
