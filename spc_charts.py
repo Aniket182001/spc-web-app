@@ -1061,6 +1061,108 @@ def upload_file():
             annotation_text=f"LCL = {LCL:.2f}"
         )
 
+    # =====================================================
+    # C CHART
+    # =====================================================
+
+    elif chart_type == "c_chart":
+
+        c_values = df.iloc[:, 0].values
+
+        c_bar = np.mean(c_values)
+
+        UCL = c_bar + (3 * np.sqrt(c_bar))
+
+        LCL = c_bar - (3 * np.sqrt(c_bar))
+
+        LCL = max(LCL, 0)
+
+        out_c = (
+            (c_values > UCL)
+            | (c_values < LCL)
+        )
+
+        subgroup_numbers = list(
+            range(1, len(c_values) + 1)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
+
+        analysis_messages = []
+
+        if np.sum(out_c) == 0:
+
+            analysis_messages.append(
+                "✅ Defect count process is stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_c)} point(s) "
+                f"outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total samples analyzed: {len(c_values)}"
+        )
+
+        insight = "<br>".join(analysis_messages)
+
+        # -------------------------------------------------
+        # PLOT
+        # -------------------------------------------------
+
+        fig = go.Figure()
+
+        chart_title = (
+            f"{chart_name} - C Chart"
+            if chart_name
+            else "C Chart"
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=c_values,
+                mode='lines+markers',
+                name='Defects',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_c
+                    ]
+                )
+            )
+        )
+
+        fig.add_hline(
+            y=c_bar,
+            line_color='green',
+            annotation_text=f"CL = {c_bar:.2f}"
+        )
+
+        fig.add_hline(
+            y=UCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"UCL = {UCL:.2f}"
+        )
+
+        fig.add_hline(
+            y=LCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"LCL = {LCL:.2f}"
+        )
+
     # -------------------------------------------------
     # End Block - No more chart types below this point
     # -------------------------------------------------

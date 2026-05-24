@@ -97,9 +97,14 @@ def capability_analysis():
             insight="❌ No valid numeric data found."
         )
 
+    # Parse USL and LSL from form request
+    lsl = float(request.form.get('lsl'))
+    usl = float(request.form.get('usl'))
+
     # =========================
     # Capability Calculations
     # =========================
+
 
     mean = np.mean(data)
 
