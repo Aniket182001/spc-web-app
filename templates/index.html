@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html>
+
 <head>
+
     <title>SPC Control Chart Tool</title>
 
     <style>
@@ -13,50 +15,60 @@
         }
 
         .container {
-            max-width: 850px;
+            max-width: 900px;
             margin: auto;
         }
 
         .card {
             background: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+            border-radius: 14px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
         }
 
         h1 {
             text-align: center;
-            color: #222;
+            color: #1e293b;
             margin-bottom: 30px;
         }
 
         label {
             font-weight: bold;
             display: block;
-            margin-top: 15px;
-            margin-bottom: 6px;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            color: #334155;
         }
 
-        input, 
+        input,
         select {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
-            border: 1px solid #ccc;
+            border: 1px solid #cbd5e1;
             font-size: 15px;
             box-sizing: border-box;
+            transition: 0.2s;
+        }
+
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0px 0px 0px 3px rgba(37, 99, 235, 0.15);
         }
 
         button {
-            margin-top: 25px;
+            margin-top: 30px;
             width: 100%;
             background-color: #2563eb;
             color: white;
             border: none;
             padding: 14px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
         }
@@ -66,10 +78,11 @@
         }
 
         .message {
-            padding: 15px;
-            border-radius: 8px;
+            padding: 16px;
+            border-radius: 10px;
             margin-bottom: 20px;
             font-weight: bold;
+            line-height: 1.6;
         }
 
         .warning {
@@ -87,8 +100,8 @@
         .chart-container {
             background: white;
             padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
+            border-radius: 14px;
+            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.08);
         }
 
     </style>
@@ -97,136 +110,273 @@
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-    <h1>Control Chart Tool</h1>
+        <!-- ========================================= -->
+        <!-- TITLE -->
+        <!-- ========================================= -->
 
-    <div class="card">
+        <h1>📊 SPC Control Chart Tool</h1>
 
-        <form action="/upload" method="post" enctype="multipart/form-data">
+        <!-- ========================================= -->
+        <!-- FORM CARD -->
+        <!-- ========================================= -->
 
-            <label>Upload Data File</label>
-            <input type="file" name="file" accept=".xlsx,.xls,.csv,.txt" required>
+        <div class="card">
 
-            <label>Chart Name:</label>
-            <input type="text" name="chart_name" placeholder="e.g. Daily Production">
+            <form action="/upload" method="post" enctype="multipart/form-data">
 
-            <label>Select Chart Type</label>
-            <select name="chart" id="chart-select">
+                <!-- FILE -->
 
-                <option value="xbar_r">Xbar-R Chart</option>
-                <option value="xbar_s">Xbar-S Chart</option>
-                <option value="p_chart">P Chart</option>
-                <option value="np_chart">NP Chart</option>
-                <option value="c_chart">C Chart</option>
-                <option value="u_chart">U Chart</option>
-                <option value="imr_chart">IMR Chart</option>
+                <label>Upload Data File</label>
 
-            </select>
+                <input
+                    type="file"
+                    name="file"
+                    accept=".xlsx,.xls,.csv,.txt"
+                    required
+                >
 
-            <div id="subgroup-container">
+                <!-- CHART NAME -->
 
-            <label>Subgroup Size</label>
+                <label>Chart Name</label>
 
-            <input
-                type="number"
-                name="subgroup_size"
-                min="2"
-                max="25"
-                required
-            >
+                <input
+                    type="text"
+                    name="chart_name"
+                    placeholder="e.g. Daily Production"
+                >
+
+                <!-- CHART TYPE -->
+
+                <label>Select Chart Type</label>
+
+                <select name="chart" id="chart-select">
+
+                    <option value="xbar_r">Xbar-R Chart</option>
+
+                    <option value="xbar_s">Xbar-S Chart</option>
+
+                    <option value="p_chart">P Chart</option>
+
+                    <option value="np_chart">NP Chart</option>
+
+                    <option value="c_chart">C Chart</option>
+
+                    <option value="u_chart">U Chart</option>
+
+                    <option value="imr_chart">IMR Chart</option>
+
+                </select>
+
+                <!-- SUBGROUP SIZE -->
+
+                <div id="subgroup-container">
+
+                    <label>Subgroup Size</label>
+
+                    <input
+                        type="number"
+                        name="subgroup_size"
+                        min="2"
+                        max="25"
+                        required
+                    >
+
+                </div>
+
+                <!-- SAMPLE SIZE -->
+
+                <div id="sample-size-container" style="display:none;">
+
+                    <label>Sample Size</label>
+
+                    <input
+                        type="number"
+                        name="sample_size"
+                        min="1"
+                    >
+
+                </div>
+
+                <!-- SPEC LIMITS -->
+
+                <div id="spec-limit-container">
+
+                    <label>Lower Specification Limit (LSL)</label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        name="lsl"
+                    >
+
+                    <label>Upper Specification Limit (USL)</label>
+
+                    <input
+                        type="number"
+                        step="any"
+                        name="usl"
+                    >
+
+                </div>
+
+                <!-- BUTTON -->
+
+                <button type="submit">
+
+                    Generate Control Chart
+
+                </button>
+
+            </form>
 
         </div>
 
-            <div id="spec-limit-container">
+        <!-- ========================================= -->
+        <!-- WARNING -->
+        <!-- ========================================= -->
 
-            <label>LSL (Optional)</label>
-            <input type="number" step="any" name="lsl">
+        {% if warning %}
 
-            <label>USL (Optional)</label>
-            <input type="number" step="any" name="usl">
+            <div class="message warning">
 
-        </div>
+                {{ warning }}
 
-            <button type="submit">
-                Generate Control Chart
-            </button>
+            </div>
 
-        </form>
+        {% endif %}
+
+        <!-- ========================================= -->
+        <!-- INSIGHTS -->
+        <!-- ========================================= -->
+
+        {% if insight %}
+
+            <div class="message insight">
+
+                {{ insight|safe }}
+
+            </div>
+
+        {% endif %}
+
+        <!-- ========================================= -->
+        <!-- CHART -->
+        <!-- ========================================= -->
+
+        {% if graph %}
+
+            <div class="chart-container">
+
+                {{ graph|safe }}
+
+            </div>
+
+        {% endif %}
 
     </div>
 
-    {% if warning %}
-        <div class="message warning">
-            {{ warning }}
-        </div>
-    {% endif %}
+    <!-- ========================================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================================= -->
 
-    {% if insight %}
-        <div class="message insight">
-            {{ insight|safe }}
-        </div>
-    {% endif %}
+    <script>
 
-    {% if graph %}
-        <div class="chart-container">
-            {{ graph|safe }}
-        </div>
-    {% endif %}
+        const chartSelect = document.getElementById(
+            "chart-select"
+        );
 
-</div>
-<script>
+        const subgroupContainer = document.getElementById(
+            "subgroup-container"
+        );
 
-    const chartSelect = document.getElementById("chart-select");
+        const sampleSizeContainer = document.getElementById(
+            "sample-size-container"
+        );
 
-    const subgroupContainer = document.getElementById(
-        "subgroup-container"
-    );
+        const specLimitContainer = document.getElementById(
+            "spec-limit-container"
+        );
 
-    const specLimitContainer = document.getElementById(
-        "spec-limit-container"
-    );
+        function toggleFields() {
 
-    function toggleFields() {
+            const chartType = chartSelect.value;
 
-        const chartType = chartSelect.value;
+            // =====================================
+            // P & NP CHARTS
+            // =====================================
 
-        // ATTRIBUTE CHARTS
+            if (
+                chartType === "p_chart" ||
+                chartType === "np_chart"
+            ) {
 
-        if (
-            chartType === "p_chart" ||
-            chartType === "np_chart" ||
-            chartType === "c_chart" ||
-            chartType === "u_chart"
-        ) {
+                sampleSizeContainer.style.display = "block";
 
-            subgroupContainer.style.display = "none";
+                subgroupContainer.style.display = "none";
 
-            specLimitContainer.style.display = "none";
+                specLimitContainer.style.display = "none";
+            }
 
+            // =====================================
+            // C & U CHARTS
+            // =====================================
+
+            else if (
+                chartType === "c_chart" ||
+                chartType === "u_chart"
+            ) {
+
+                sampleSizeContainer.style.display = "none";
+
+                subgroupContainer.style.display = "none";
+
+                specLimitContainer.style.display = "none";
+            }
+
+            // =====================================
+            // IMR CHART
+            // =====================================
+
+            else if (
+                chartType === "imr_chart"
+            ) {
+
+                sampleSizeContainer.style.display = "none";
+
+                subgroupContainer.style.display = "none";
+
+                specLimitContainer.style.display = "block";
+            }
+
+            // =====================================
+            // XBAR CHARTS
+            // =====================================
+
+            else {
+
+                sampleSizeContainer.style.display = "none";
+
+                subgroupContainer.style.display = "block";
+
+                specLimitContainer.style.display = "block";
+            }
         }
 
-        // VARIABLE CHARTS
+        // Run on dropdown change
 
-        else {
+        chartSelect.addEventListener(
+            "change",
+            toggleFields
+        );
 
-            subgroupContainer.style.display = "block";
+        // Run on page load
 
-            specLimitContainer.style.display = "block";
-        }
-    }
+        toggleFields();
 
-    // Run on dropdown change
+    </script>
 
-    chartSelect.addEventListener(
-        "change",
-        toggleFields
-    );
-
-    // Run on page load
-
-    toggleFields();
-
-</script>
 </body>
+
 </html>

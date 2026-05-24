@@ -88,6 +88,7 @@ def index():
 
 @spc_bp.route('/upload', methods=['POST'])
 def upload_file():
+    sample_size_input = request.form.get('sample_size')
 
     # =====================================================
     # FILE VALIDATION
@@ -810,16 +811,14 @@ def upload_file():
 
     elif chart_type == "p_chart":
 
-        if df.shape[1] < 2:
-
-            return (
-                "❌ P Chart requires 2 columns: "
-                "Defectives and Sample Size"
-            )
-
         defectives = df.iloc[:, 0].values
 
-        sample_sizes = df.iloc[:, 1].values
+        sample_size = int(sample_size_input)
+
+        sample_sizes = np.full(
+            len(defectives),
+            sample_size
+        )
 
         p_values = defectives / sample_sizes
 
