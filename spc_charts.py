@@ -1273,6 +1273,264 @@ def upload_file():
             annotation_text=f"LCL = {LCL:.4f}"
         )
 
+    # =====================================================
+    # IMR CHART
+    # =====================================================
+
+    elif chart_type == "imr_chart":
+
+        data = df.iloc[:, 0].values
+
+        if len(data) < 2:
+
+            return "❌ IMR Chart requires at least 2 observations"
+
+        # -------------------------------------------------
+        # CALCULATIONS
+        # -------------------------------------------------
+
+        individual_values = data
+
+        moving_ranges = np.abs(
+            np.diff(individual_values)
+        )
+
+        x_bar = np.mean(individual_values)
+
+        mr_bar = np.mean(moving_ranges)
+
+        # Individuals chart limits
+
+        UCL_X = x_bar + (2.66 * mr_bar)
+
+        LCL_X = x_bar - (2.66 * mr_bar)
+
+        # Moving range chart limits
+
+        UCL_MR = 3.267 * mr_bar
+
+        LCL_MR = 0
+
+        # -------------------------------------------------
+        # USL / LSL
+        # -------------------------------------------------
+
+        process_std = np.std(data, ddof=1)
+
+        if usl_input and lsl_input:
+
+            usl = float(usl_input)
+
+            lsl = float(lsl_input)
+
+        else:
+
+            usl = x_bar + (3 * process_std)
+
+            lsl = x_bar - (3 * process_std)
+
+        # -------------------------------------------------
+        # OUT OF CONTROL
+        # -------------------------------------------------
+
+        out_x = (
+            (individual_values > UCL_X)
+            | (individual_values < LCL_X)
+        )
+
+        out_mr = (
+            (moving_ranges > UCL_MR)
+            | (moving_ranges < LCL_MR)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
+
+        analysis_messages = []
+
+        if np.sum(out_x) == 0:
+
+            analysis_messages.append(
+                "✅ Individual observations are stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_x)} individual point(s) "
+                f"outside control limits"
+            )
+
+        if np.sum(out_mr) == 0:
+
+            analysis_messages.append(
+                "✅ Moving ranges are stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_mr)} moving range point(s) "
+                f"outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total observations analyzed: {len(individual_values)}"
+        )
+
+        insight = "<br>".join(analysis_messages)
+
+        subgroup_numbers = list(
+            range(1, len(individual_values) + 1)
+        )
+
+        mr_numbers = list(
+            range(2, len(individual_values) + 1)
+        )
+
+        # -------------------------------------------------
+        # PLOT
+        # -------------------------------------------------
+
+        fig = make_subplots(
+            rows=2,
+            cols=1,
+            shared_xaxes=False,
+            subplot_titles=(
+                "Individuals Chart",
+                "Moving Range Chart"
+            )
+        )
+
+        chart_title = (
+            f"{chart_name} - IMR Chart"
+            if chart_name
+            else "IMR Chart"
+        )
+
+        # Individuals plot
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=individual_values,
+                mode='lines+markers',
+                name='Individuals',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_x
+                    ]
+                )
+            ),
+            row=1,
+            col=1
+        )
+
+        # Moving range plot
+
+        fig.add_trace(
+            go.Scatter(
+                x=mr_numbers,
+                y=moving_ranges,
+                mode='lines+markers',
+                name='Moving Range',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_mr
+                    ]
+                )
+            ),
+            row=2,
+            col=1
+        )
+
+        # Individuals limits
+
+        fig.add_hline(
+            y=x_bar,
+            line_color='green',
+            annotation_text=f"CL = {x_bar:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_X,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"UCL = {UCL_X:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_X,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"LCL = {LCL_X:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=usl,
+            line_color='blue',
+            line_dash='dot',
+            annotation_text=f"USL = {usl:.2f}",
+            row=1,
+            col=1
+        )
+
+        fig.add_hline(
+            y=lsl,
+            line_color='blue',
+            line_dash='dot',
+            annotation_text=f"LSL = {lsl:.2f}",
+            row=1,
+            col=1
+        )
+
+        # MR limits
+
+        fig.add_hline(
+            y=mr_bar,
+            line_color='green',
+            annotation_text=f"CL = {mr_bar:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=UCL_MR,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"UCL = {UCL_MR:.2f}",
+            row=2,
+            col=1
+        )
+
+        fig.add_hline(
+            y=LCL_MR,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"LCL = {LCL_MR:.2f}",
+            row=2,
+            col=1
+        )
+
     # -------------------------------------------------
     # End Block - No more chart types below this point
     # -------------------------------------------------
