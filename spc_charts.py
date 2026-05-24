@@ -1163,6 +1163,116 @@ def upload_file():
             annotation_text=f"LCL = {LCL:.2f}"
         )
 
+    # =====================================================
+    # U CHART
+    # =====================================================
+
+    elif chart_type == "u_chart":
+
+        defects = df.iloc[:, 0].values
+
+        sample_size = int(sample_size_input)
+
+        u_values = defects / sample_size
+
+        u_bar = np.mean(u_values)
+
+        UCL = u_bar + (
+            3 * np.sqrt(u_bar / sample_size)
+        )
+
+        LCL = u_bar - (
+            3 * np.sqrt(u_bar / sample_size)
+        )
+
+        LCL = max(LCL, 0)
+
+        out_u = (
+            (u_values > UCL)
+            | (u_values < LCL)
+        )
+
+        subgroup_numbers = list(
+            range(1, len(u_values) + 1)
+        )
+
+        # -------------------------------------------------
+        # INSIGHTS
+        # -------------------------------------------------
+
+        analysis_messages = []
+
+        if np.sum(out_u) == 0:
+
+            analysis_messages.append(
+                "✅ Defects per unit process is stable"
+            )
+
+        else:
+
+            analysis_messages.append(
+                f"⚠️ {np.sum(out_u)} point(s) "
+                f"outside control limits"
+            )
+
+        analysis_messages.append(
+            f"ℹ️ Total samples analyzed: {len(u_values)}"
+        )
+
+        insight = "<br>".join(analysis_messages)
+
+        # -------------------------------------------------
+        # PLOT
+        # -------------------------------------------------
+
+        fig = go.Figure()
+
+        chart_title = (
+            f"{chart_name} - U Chart"
+            if chart_name
+            else "U Chart"
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=u_values,
+                mode='lines+markers',
+                name='Defects per Unit',
+                line=dict(
+                    color='black',
+                    width=2
+                ),
+                marker=dict(
+                    size=8,
+                    color=[
+                        'red' if val else 'black'
+                        for val in out_u
+                    ]
+                )
+            )
+        )
+
+        fig.add_hline(
+            y=u_bar,
+            line_color='green',
+            annotation_text=f"CL = {u_bar:.4f}"
+        )
+
+        fig.add_hline(
+            y=UCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"UCL = {UCL:.4f}"
+        )
+
+        fig.add_hline(
+            y=LCL,
+            line_color='red',
+            line_dash='dash',
+            annotation_text=f"LCL = {LCL:.4f}"
+        )
+
     # -------------------------------------------------
     # End Block - No more chart types below this point
     # -------------------------------------------------

@@ -326,15 +326,31 @@
             }
 
             // =====================================
-            // C & U CHARTS
+            // C CHART
             // =====================================
 
             else if (
-                chartType === "c_chart" ||
-                chartType === "u_chart"
+                chartType === "c_chart"
             ) {
 
                 sampleSizeContainer.style.display = "none";
+
+                subgroupContainer.style.display = "none";
+
+                specLimitContainer.style.display = "none";
+
+                subgroupInput.required = false;
+            }
+
+            // =====================================
+            // C CHART
+            // =====================================
+
+            else if (
+                chartType === "u_chart"
+            ) {
+
+                sampleSizeContainer.style.display = "block";
 
                 subgroupContainer.style.display = "none";
 
