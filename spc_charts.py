@@ -90,6 +90,7 @@ def upload_file():
         )
 
     chart_type = request.form['chart']
+    chart_name = request.form.get('chart_name', '').strip()
 
     subgroup_size = int(request.form['subgroup_size'])
 
@@ -205,17 +206,17 @@ def upload_file():
 
             lsl = xbar_bar - (3 * process_std)
 
-            R_bar = np.mean(R)
+        R_bar = np.mean(R)
 
-            A2 = A2_TABLE[n]
-            D3 = D3_TABLE[n]
-            D4 = D4_TABLE[n]
+        A2 = A2_TABLE[n]
+        D3 = D3_TABLE[n]
+        D4 = D4_TABLE[n]
 
-            UCL_xbar = xbar_bar + A2 * R_bar
-            LCL_xbar = xbar_bar - A2 * R_bar
+        UCL_xbar = xbar_bar + A2 * R_bar
+        LCL_xbar = xbar_bar - A2 * R_bar
 
-            UCL_R = D4 * R_bar
-            LCL_R = D3 * R_bar
+        UCL_R = D4 * R_bar
+        LCL_R = D3 * R_bar
 
         # Out of control detection
 
@@ -272,6 +273,7 @@ def upload_file():
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "R Chart")
         )
+        chart_title = f"{chart_name} - X̄-R Control Chart" if chart_name else "X̄-R Control Chart"
 
         # XBAR TRACE
 
@@ -486,6 +488,7 @@ def upload_file():
             shared_xaxes=True,
             subplot_titles=("X̄ Chart", "S Chart")
         )
+        chart_title = f"{chart_name} - X̄-S Control Chart" if chart_name else "X̄-S Control Chart"
 
         # XBAR TRACE
 
@@ -611,6 +614,7 @@ def upload_file():
     # =========================
 
     fig.update_layout(
+        title=chart_title,
         height=850,
         showlegend=False,
         plot_bgcolor='white',
