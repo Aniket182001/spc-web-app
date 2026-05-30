@@ -1,4 +1,9 @@
-from flask import Blueprint, render_template, request
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    send_file
+)
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
@@ -8,6 +13,7 @@ import time
 
 from utils import allowed_file
 from werkzeug.utils import secure_filename
+from spc_pdf_generator import generate_spc_pdf
 
 from spc_constants import (
     A2_TABLE,
@@ -30,6 +36,9 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+LAST_CHART_TITLE = ""
+LAST_CHART_IMAGE = ""
+LAST_INSIGHT = ""
 
 # =========================================================
 # WESTERN ELECTRIC RULE 2
@@ -76,10 +85,14 @@ def check_rule2(points, center_line):
 # HOME ROUTE
 # =========================================================
 
-@spc_bp.route('/')
-def index():
-
-    return render_template('index.html')
+@spc_bp.route("/")
+def home():
+    return render_template(
+        "index.html",
+        graph=None,
+        insight=None,
+        warning=None
+    )
 
 
 # =========================================================
@@ -382,13 +395,13 @@ def upload_file():
             rows=2,
             cols=1,
             shared_xaxes=True,
-            subplot_titles=("X̄ Chart", "R Chart")
+            subplot_titles=("X Bar Chart", "R Chart")
         )
 
         chart_title = (
-            f"{chart_name} - X̄-R Control Chart"
+            f"{chart_name} - X Bar R Control Chart"
             if chart_name
-            else "X̄-R Control Chart"
+            else "X Bar R Control Chart"
         )
 
         # XBAR TRACE
@@ -680,13 +693,13 @@ def upload_file():
             rows=2,
             cols=1,
             shared_xaxes=True,
-            subplot_titles=("X̄ Chart", "S Chart")
+            subplot_titles=("X Bar Chart", "S Chart")
         )
 
         chart_title = (
-            f"{chart_name} - X̄-S Control Chart"
+            f"{chart_name} - X Bar S Control Chart"
             if chart_name
-            else "X̄-S Control Chart"
+            else "X Bar S Control Chart"
         )
 
         # XBAR TRACE
@@ -1539,23 +1552,177 @@ def upload_file():
         return "❌ Invalid chart type selected"
 
     # =====================================================
-    # COMMON LAYOUT
+    # COMMON LAYOUT  –  SPC Insight Pro theme
     # =====================================================
 
-    fig.update_layout(
-        title=chart_title,
-        height=850,
-        showlegend=False,
-        plot_bgcolor='white',
-        paper_bgcolor='white',
-        font=dict(size=14),
-        title_x=0.5
+    # ── Palette ──────────────────────────────────────
+    CLR_BG          = '#F8FAFC'   # near-white canvas
+    CLR_PAPER       = '#FFFFFF'
+    CLR_GRID        = '#E2E8F0'   # slate-200
+    CLR_AXIS        = '#94A3B8'   # slate-400
+    CLR_TITLE       = '#0F172A'   # slate-900
+    CLR_SUBTITLE    = '#475569'   # slate-600
+    CLR_DATA        = '#1E40AF'   # brand blue (in-control points)
+    CLR_DATA_LINE   = '#3B82F6'   # blue-500
+    CLR_OOC         = '#EF4444'   # red-500  (out-of-control markers)
+    CLR_CL          = '#10B981'   # emerald-500  center line
+    CLR_UCL_LCL     = '#F59E0B'   # amber-500    control limits
+    CLR_SPEC        = '#6366F1'   # indigo-500   spec limits
+    CLR_ANNOTATION  = '#334155'   # slate-700
+
+    # ── Annotation style shared across all hlines ────
+    ann_font = dict(
+        size=11,
+        color=CLR_ANNOTATION,
+        family="'DM Sans', 'IBM Plex Sans', sans-serif"
     )
+
+    # ── Re-style every trace  ────────────────────────
+    for trace in fig.data:
+        # Data lines
+        trace.line.color = CLR_DATA_LINE
+        trace.line.width = 2
+        # Marker colours: keep red for OOC, upgrade in-control to brand blue
+        if hasattr(trace, 'marker') and trace.marker.color is not None:
+            colours = trace.marker.color
+            if isinstance(colours, list):
+                trace.marker.color = [
+                    CLR_OOC if c in ('red', '#EF4444') else CLR_DATA
+                    for c in colours
+                ]
+            trace.marker.size = 7
+            trace.marker.line = dict(color=CLR_PAPER, width=1.5)
+
+    # Re-style every hline shape
+    # Plotly stores hline color in shape.line.color; map original named colors to refined palette
+    _shape_color_map = {
+        'green': (CLR_CL,      2,   'solid'),
+        'red':   (CLR_UCL_LCL, 1.5, 'dash'),
+        'blue':  (CLR_SPEC,    1.5, 'dot'),
+    }
+    for shape in fig.layout.shapes:
+        try:
+            orig = shape.line.color or ''
+        except Exception:
+            continue
+        if orig in _shape_color_map:
+            new_clr, new_w, new_dash = _shape_color_map[orig]
+            shape.line.color = new_clr
+            shape.line.width = new_w
+            shape.line.dash  = new_dash
+
+    # ── Re-style every annotation ────────────────────
+    for ann in fig.layout.annotations:
+        if ann.text and ann.text.strip():
+            # Subplot titles  (no x-anchor adjustment needed)
+            if ann.xref == 'paper' and ann.yref == 'paper':
+                ann.font = dict(
+                    size=13,
+                    color=CLR_SUBTITLE,
+                    family="'DM Sans', 'IBM Plex Sans', sans-serif"
+                )
+            else:
+                # Limit labels
+                ann.font = ann_font
+                ann.bgcolor = 'rgba(255,255,255,0.82)'
+                ann.bordercolor = CLR_GRID
+                ann.borderwidth = 1
+                ann.borderpad = 3
+                ann.xanchor = 'left'
+
+    # ── Main layout ──────────────────────────────────
+    fig.update_layout(
+        annotations=[
+            dict(
+                text="SPC Insight Pro • AIQM Analytics",
+                x=1,
+                y=-0.12,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+                xanchor="right",
+                font=dict(
+                    size=10,
+                    color="#94A3B8"
+                )
+            )
+        ],
+        title=dict(
+            text=chart_title,
+            x=0.5,
+            xanchor='center',
+            font=dict(
+                size=20,
+                color=CLR_TITLE,
+                family="'DM Sans', 'IBM Plex Sans', sans-serif",
+            ),
+            pad=dict(t=8, b=4)
+        ),
+        height=880,
+        showlegend=False,
+        plot_bgcolor=CLR_BG,
+        paper_bgcolor=CLR_PAPER,
+        font=dict(
+            size=12,
+            color=CLR_ANNOTATION,
+            family="'DM Sans', 'IBM Plex Sans', sans-serif"
+        ),
+        margin=dict(l=64, r=120, t=80, b=56),
+        hovermode='x unified',
+        hoverlabel=dict(
+            bgcolor=CLR_PAPER,
+            bordercolor=CLR_GRID,
+            font=dict(
+                size=12,
+                color=CLR_TITLE,
+                family="'DM Sans', 'IBM Plex Sans', sans-serif"
+            )
+        )
+    )
+
+    # ── Axes for all subplots ────────────────────────
+    fig.update_xaxes(
+        showgrid=True,
+        gridcolor=CLR_GRID,
+        gridwidth=1,
+        zeroline=False,
+        linecolor=CLR_GRID,
+        tickcolor=CLR_AXIS,
+        tickfont=dict(size=11, color=CLR_AXIS),
+        title_font=dict(size=12, color=CLR_SUBTITLE),
+        title_text="Subgroup",
+        mirror=False,
+        ticks='outside',
+        ticklen=4,
+        showspikes=True,
+        spikethickness=1,
+        spikecolor=CLR_GRID,
+        spikedash='dot'
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor=CLR_GRID,
+        gridwidth=1,
+        zeroline=False,
+        linecolor=CLR_GRID,
+        tickcolor=CLR_AXIS,
+        tickfont=dict(size=11, color=CLR_AXIS),
+        title_font=dict(size=12, color=CLR_SUBTITLE),
+        mirror=False,
+        ticks='outside',
+        ticklen=4
+    )
+
+    chart_image_path = "static/latest_chart.png"
+    fig.write_image(chart_image_path)
 
     graph_html = fig.to_html(
         full_html=False,
+        include_plotlyjs='cdn',
         config={
             'displaylogo': False,
+            'responsive': True,
             'modeBarButtonsToRemove': [
                 'lasso2d',
                 'select2d',
@@ -1563,13 +1730,28 @@ def upload_file():
                 'toggleSpikelines',
                 'hoverCompareCartesian',
                 'hoverClosestCartesian'
-            ]
+            ],
+            'toImageButtonOptions': {
+                'format': 'svg',
+                'filename': chart_title,
+                'height': 880,
+                'width': 1200,
+                'scale': 2
+            }
         }
     )
 
     # =====================================================
     # DELETE FILE
     # =====================================================
+
+    global LAST_CHART_TITLE
+    global LAST_CHART_IMAGE
+    global LAST_INSIGHT
+
+    LAST_CHART_TITLE = chart_title
+    LAST_CHART_IMAGE = chart_image_path
+    LAST_INSIGHT = insight
 
     os.remove(filepath)
 
@@ -1578,4 +1760,25 @@ def upload_file():
         graph=graph_html,
         insight=insight,
         warning=warning
+    )
+
+    # =========================================================
+    # Download Route
+    # =========================================================
+
+@spc_bp.route("/download-spc-report")
+def download_spc_report():
+
+    output_pdf = "static/spc_report.pdf"
+
+    generate_spc_pdf(
+        LAST_CHART_TITLE,
+        LAST_INSIGHT,
+        LAST_CHART_IMAGE,
+        output_pdf
+    )
+
+    return send_file(
+        output_pdf,
+        as_attachment=True
     )

@@ -273,7 +273,7 @@
     .header-inner {
       max-width: 1380px;
       margin: 0 auto;
-      padding: 14px 32px;
+      padding: 14px 40px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -281,14 +281,20 @@
     }
 
     .brand {
+      text-decoration: none;
+      color: inherit;
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
+    .brand:hover {
+        opacity: 0.9;
+    }
+
     .brand-icon {
-      width: 36px;
-      height: 36px;
+      width: 40px;
+      height: 40px;
       background: linear-gradient(135deg, #1d4ed8, #3b82f6);
       border-radius: 8px;
       display: flex;
@@ -301,7 +307,7 @@
     .brand-icon svg { width: 20px; height: 20px; }
 
     .brand-text h1 {
-      font-size: 1.15rem;
+      font-size: 1.20rem;
       font-weight: 700;
       color: var(--text-brand);
       letter-spacing: -0.02em;
@@ -538,7 +544,7 @@
     ===================================================== */
     .dashboard-layout {
       display: grid;
-      grid-template-columns: 320px 1fr;
+      grid-template-columns: 280px 1fr;
       gap: 24px;
       align-items: start;
     }
@@ -790,6 +796,39 @@
 
     .btn-primary:active { transform: translateY(0); }
     .btn-primary svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    .download-btn {
+      text-decoration: none;
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, var(--accent-primary), #1a56d4);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.28), 0 1px 4px rgba(0,0,0,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .download-btn:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+    box-shadow: 0 15px 30px rgba(37, 99, 235, 0.35);
+    }
+
+    .download-btn:active {
+
+        transform: translateY(0);
+    }
 
     /* =====================================================
        RESULTS SECTION
@@ -1059,7 +1098,7 @@
     <header>
       <div class="header-inner">
 
-        <div class="brand">
+        <a href="/" class="brand">
           <div class="brand-icon">
             <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="11" width="3" height="7" rx="1" fill="white" opacity="0.7"/>
@@ -1073,12 +1112,12 @@
             <h1>SPC Insight Pro</h1>
             <p>Statistical Process Control Platform</p>
           </div>
-        </div>
+        </a>
 
         <div class="header-right">
           <div class="status-badge">
             <span class="status-dot"></span>
-            READY
+            Live
           </div>
 
           <div class="org-tag">AIQM India</div>
@@ -1234,7 +1273,14 @@
                   </svg>
                   Generate Control Chart
                 </button>
+                {% if graph %}
 
+                <a href="/download-spc-report" class="download-btn">
+                    <span class="btn-icon">📄</span>
+                    <span>Download Report</span>
+                </a>
+
+                {% endif %}
               </form>
             </div>
           </div>
