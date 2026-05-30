@@ -1,410 +1,1438 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="light">
 
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SPC Insight Pro</title>
 
-    <title>SPC Control Chart Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
 
-    <style>
+  <style>
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 40px;
-        }
+    /* =====================================================
+       LIGHT THEME (DEFAULT)
+       Clean, organization-ready. Based on cool whites and
+       slate grays — avoids the warm-yellow tint of generic
+       "light mode" designs.
+    ===================================================== */
+    :root,
+    [data-theme="light"] {
+      --bg-base:        #f1f5f9;       /* Cool slate-white page bg */
+      --bg-surface:     #ffffff;       /* Card backgrounds */
+      --bg-elevated:    #f8fafc;       /* Hover, secondary surfaces */
+      --bg-input:       #ffffff;       /* Input field background */
+      --bg-header:      rgba(255,255,255,0.88);
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
+      --border-subtle:  #e2e8f0;       /* Hairline structural borders */
+      --border-default: #cbd5e1;       /* Input / card borders */
+      --border-focus:   #2563eb;       /* Focus ring */
 
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 14px;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.08);
-            margin-bottom: 30px;
-        }
+      --text-primary:   #0f172a;       /* Near-black — crisp readability */
+      --text-secondary: #475569;       /* Labels and helper text */
+      --text-muted:     #94a3b8;       /* Placeholders, disabled */
+      --text-accent:    #2563eb;       /* Links, accent text */
+      --text-brand:     #0f172a;       /* Brand heading */
 
-        h1 {
-            text-align: center;
-            color: #1e293b;
-            margin-bottom: 30px;
-        }
+      --accent-primary: #2563eb;
+      --accent-hover:   #1d4ed8;
 
-        label {
-            font-weight: bold;
-            display: block;
-            margin-top: 18px;
-            margin-bottom: 8px;
-            color: #334155;
-        }
+      --status-color:   #16a34a;
+      --status-bg:      rgba(22, 163, 74, 0.08);
+      --status-border:  rgba(22, 163, 74, 0.2);
 
-        input,
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #cbd5e1;
-            font-size: 15px;
-            box-sizing: border-box;
-            transition: 0.2s;
-        }
+      --warning-bg:     #fffbeb;
+      --warning-border: #fde68a;
+      --warning-border-l: #d97706;
+      --warning-text:   #92400e;
+      --warning-label:  #b45309;
 
-        input:focus,
-        select:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0px 0px 0px 3px rgba(37, 99, 235, 0.15);
-        }
+      --info-bg:        #eff6ff;
+      --info-border:    #bfdbfe;
+      --info-border-l:  #2563eb;
+      --info-text:      #1e40af;
+      --info-label:     #2563eb;
 
-        button {
-            margin-top: 30px;
-            width: 100%;
-            background-color: #2563eb;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+      --shadow-card:    0 1px 4px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.07);
+      --shadow-input:   inset 0 1px 2px rgba(15,23,42,0.04);
 
-        button:hover {
-            background-color: #1d4ed8;
-        }
+      --grid-color:     #cbd5e1;
+      --grid-vignette:  #f1f5f9;
 
-        .message {
-            padding: 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-weight: bold;
-            line-height: 1.6;
-        }
+      --deco-color:     #2563eb;
+      --deco-opacity:   0.08;
+      --ring-opacity:   0.18;
+      --dots-opacity:   0.12;
 
-        .warning {
-            background-color: #fff7ed;
-            color: #c2410c;
-            border: 1px solid #fdba74;
-        }
+      --org-tag-bg:     #f0f9ff;
+      --org-tag-border: #bae6fd;
+      --org-tag-color:  #0369a1;
 
-        .insight {
-            background-color: #ecfeff;
-            color: #155e75;
-            border: 1px solid #67e8f9;
-        }
+      /* Toggle track colors */
+      --toggle-track-light: #e2e8f0;
+      --toggle-thumb-shadow: rgba(15,23,42,0.15);
+    }
 
-        .chart-container {
-            background: white;
-            padding: 20px;
-            border-radius: 14px;
-            box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.08);
-        }
+    /* =====================================================
+       DARK THEME
+       Applied via [data-theme="dark"] on <html>.
+       Every token overridden — no hardcoded colors anywhere.
+    ===================================================== */
+    [data-theme="dark"] {
+      --bg-base:        #0b0f19;
+      --bg-surface:     #111827;
+      --bg-elevated:    #1a2235;
+      --bg-input:       #0d1526;
+      --bg-header:      rgba(11,15,25,0.88);
 
-    </style>
+      --border-subtle:  #1e2d47;
+      --border-default: #253452;
+      --border-focus:   #3b82f6;
 
+      --text-primary:   #e2e8f0;
+      --text-secondary: #7a8fa8;
+      --text-muted:     #3d5270;
+      --text-accent:    #60a5fa;
+      --text-brand:     #f0f6ff;
+
+      --accent-primary: #2563eb;
+      --accent-hover:   #1d4ed8;
+
+      --status-color:   #4ade80;
+      --status-bg:      rgba(74,222,128,0.08);
+      --status-border:  rgba(74,222,128,0.22);
+
+      --warning-bg:     #1f1407;
+      --warning-border: #92400e;
+      --warning-border-l: #f97316;
+      --warning-text:   #fdba74;
+      --warning-label:  #fb923c;
+
+      --info-bg:        #0c1a2e;
+      --info-border:    #1e3a5f;
+      --info-border-l:  #60a5fa;
+      --info-text:      #93c5fd;
+      --info-label:     #60a5fa;
+
+      --shadow-card:    0 4px 24px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.3);
+      --shadow-input:   inset 0 1px 3px rgba(0,0,0,0.35);
+
+      --grid-color:     #1e2d47;
+      --grid-vignette:  #0b0f19;
+
+      --deco-color:     #60a5fa;
+      --deco-opacity:   0.07;
+      --ring-opacity:   0.12;
+      --dots-opacity:   0.08;
+
+      --org-tag-bg:     #1a2235;
+      --org-tag-border: #253452;
+      --org-tag-color:  #60a5fa;
+
+      --toggle-track-light: #253452;
+      --toggle-thumb-shadow: rgba(0,0,0,0.4);
+    }
+
+    /* =====================================================
+       GLOBAL TRANSITION — smooth theme switching
+       Only transitions color/bg properties, never layout.
+    ===================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition:
+        background-color 0.28s ease,
+        border-color 0.28s ease,
+        color 0.28s ease,
+        box-shadow 0.28s ease;
+    }
+
+    /* Exclude transitions on elements where they'd cause flicker */
+    button, a, .btn-primary, .theme-toggle, .theme-toggle-thumb {
+      transition:
+        background-color 0.18s ease,
+        border-color 0.18s ease,
+        color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease,
+        opacity 0.18s ease;
+    }
+
+    html {
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* =====================================================
+       BACKGROUND GRID TEXTURE (theme-aware)
+    ===================================================== */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size: 40px 40px;
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 0.28s ease;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 70% at 50% 40%, transparent 30%, var(--grid-vignette) 100%);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* =====================================================
+       DECORATIVE GEOMETRIC ELEMENTS
+    ===================================================== */
+    .deco-crosshair {
+      position: fixed;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .deco-crosshair--tl { top: 80px; left: 80px; }
+    .deco-crosshair--br { bottom: 80px; right: 80px; transform: rotate(45deg); }
+
+    .deco-crosshair svg { opacity: var(--deco-opacity); }
+    .deco-crosshair svg line, .deco-crosshair svg circle, .deco-crosshair svg rect {
+      stroke: var(--deco-color);
+    }
+    .deco-crosshair svg circle[fill] { fill: var(--deco-color); }
+
+    .deco-ring {
+      position: fixed;
+      border-radius: 50%;
+      border: 1px solid var(--border-default);
+      pointer-events: none;
+      z-index: 1;
+      opacity: var(--ring-opacity);
+    }
+
+    .deco-ring--1 { width: 320px; height: 320px; top: -100px; right: -60px; }
+    .deco-ring--2 { width: 180px; height: 180px; top: -30px; right: 70px; opacity: calc(var(--ring-opacity) * 0.6); }
+
+    .deco-dots {
+      position: fixed;
+      bottom: 120px;
+      left: 40px;
+      opacity: var(--dots-opacity);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .deco-dots circle { fill: var(--deco-color); }
+
+    /* =====================================================
+       PAGE WRAPPER
+    ===================================================== */
+    .page-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* =====================================================
+       HEADER
+    ===================================================== */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--bg-header);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-subtle);
+      box-shadow: 0 1px 0 var(--border-subtle);
+    }
+
+    .header-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 4px 12px rgba(37,99,235,0.3);
+    }
+
+    .brand-icon svg { width: 20px; height: 20px; }
+
+    .brand-text h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-brand);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .brand-text p {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-top: 1px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: var(--status-bg);
+      border: 1px solid var(--status-border);
+      font-size: 0.68rem;
+      color: var(--status-color);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--status-color);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    .org-tag {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--org-tag-color);
+      padding: 3px 10px;
+      border: 1px solid var(--org-tag-border);
+      border-radius: 6px;
+      background: var(--org-tag-bg);
+      letter-spacing: 0.01em;
+    }
+
+    /* =====================================================
+       THEME TOGGLE SWITCH
+       UX DECISION: A clearly labeled sun/moon toggle in the
+       header corner — standard pattern users recognize instantly.
+       The animated thumb slides smoothly between states.
+       Preference is persisted in localStorage so it survives
+       page reloads (critical for a tool users open daily).
+    ===================================================== */
+    .theme-toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .theme-toggle-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      user-select: none;
+      min-width: 28px;
+    }
+
+    .theme-toggle {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--toggle-track-light);
+      border-radius: 999px;
+      border: 1px solid var(--border-default);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.28s ease, border-color 0.28s ease;
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      background: #1e3a6e;
+      border-color: #2563eb;
+    }
+
+    .theme-toggle-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 1px 4px var(--toggle-thumb-shadow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.28s ease;
+    }
+
+    [data-theme="dark"] .theme-toggle-thumb {
+      transform: translateX(20px);
+      background: #1d4ed8;
+    }
+
+    .theme-toggle-thumb svg {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+      transition: opacity 0.2s ease;
+    }
+
+    .icon-sun  { color: #f59e0b; }
+    .icon-moon { color: white; position: absolute; opacity: 0; }
+
+    [data-theme="dark"] .icon-sun  { opacity: 0; }
+    [data-theme="dark"] .icon-moon { opacity: 1; }
+
+    .theme-toggle:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    /* =====================================================
+       MAIN CONTENT
+    ===================================================== */
+    main {
+      flex: 1;
+      max-width: 1380px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 32px 32px 48px;
+    }
+
+    /* =====================================================
+       PAGE HERO
+    ===================================================== */
+    .page-hero {
+      padding: 28px 0 24px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 28px;
+    }
+
+    .page-hero-left h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-brand);
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+    }
+
+    .page-hero-left h2 span { color: var(--text-accent); }
+
+    .page-hero-left p {
+      margin-top: 8px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      max-width: 420px;
+      line-height: 1.6;
+    }
+
+    .chart-type-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      padding: 3px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border-default);
+      color: var(--text-muted);
+      background: var(--bg-elevated);
+      letter-spacing: 0.04em;
+      /* Smooth colour swap when selection changes */
+      transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
+    }
+
+    /* Active / selected pill — electric blue with breathing dot, same
+       design language as the green READY badge in the header */
+    .pill.pill--active {
+      background: rgba(37, 99, 235, 0.10);
+      border-color: rgba(37, 99, 235, 0.45);
+      color: var(--text-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    /* The breathing dot inside the active pill */
+    .pill-dot {
+      display: none;              /* hidden on inactive pills */
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-accent);
+      flex-shrink: 0;
+      animation: pill-pulse 2s ease-in-out infinite;
+    }
+
+    .pill.pill--active .pill-dot {
+      display: inline-block;      /* visible only on active pill */
+    }
+
+    @keyframes pill-pulse {
+      0%, 100% { opacity: 1;   transform: scale(1);    }
+      50%       { opacity: 0.4; transform: scale(0.75); }
+    }
+
+    /* =====================================================
+       DASHBOARD LAYOUT
+    ===================================================== */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: calc(64px + 16px);
+    }
+
+    /* =====================================================
+       CARD
+    ===================================================== */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      animation: fadeUp 0.45s ease both;
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-elevated);
+    }
+
+    .card-header-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-header-icon svg {
+      width: 14px;
+      height: 14px;
+      color: var(--text-accent);
+      stroke: var(--text-accent);
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .card-subtitle {
+      font-size: 0.7rem;
+      color: var(--text-secondary);
+      margin-top: 1px;
+    }
+
+    .card-body { padding: 18px; }
+
+    /* =====================================================
+       FORM ELEMENTS
+    ===================================================== */
+    .form-group { margin-bottom: 18px; }
+    .form-group:last-child { margin-bottom: 0; }
+
+    .form-divider {
+      margin: 18px 0;
+      border: none;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .form-section-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.63rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-subtle);
+    }
+
+    label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="file"],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-default);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      box-shadow: var(--shadow-input);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    input::placeholder { color: var(--text-muted); }
+
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.14), var(--shadow-input);
+    }
+
+    .select-wrapper { position: relative; }
+
+    .select-wrapper::after {
+      content: '';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; height: 0;
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 5px solid var(--text-muted);
+      pointer-events: none;
+    }
+
+    /* File upload area */
+    .file-upload-area {
+      position: relative;
+      border: 1px dashed var(--border-default);
+      border-radius: 8px;
+      background: var(--bg-input);
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    .file-upload-area:hover {
+      border-color: var(--border-focus);
+      background: rgba(37,99,235,0.03);
+    }
+
+    .file-upload-area:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.14);
+    }
+
+    .file-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      padding: 0;
+      border: none;
+      background: none;
+      box-shadow: none;
+      border-radius: 8px;
+    }
+
+    .file-upload-area input[type="file"]:focus { box-shadow: none; }
+
+    .file-upload-ui {
+      padding: 14px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .file-upload-ui svg { width: 20px; height: 20px; color: var(--text-accent); flex-shrink: 0; }
+
+    .file-upload-ui-text strong {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .file-upload-ui-text span {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .input-row .form-group { margin-bottom: 0; }
+
+    /* =====================================================
+       CTA BUTTON
+    ===================================================== */
+    .btn-primary {
+      margin-top: 18px;
+      width: 100%;
+      padding: 12px 18px;
+      background: linear-gradient(135deg, var(--accent-primary), #1a56d4);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(37,99,235,0.28), 0 1px 4px rgba(0,0,0,0.12);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      pointer-events: none;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #1d4ed8, #1545bf);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 22px rgba(37,99,235,0.36), 0 1px 6px rgba(0,0,0,0.15);
+    }
+
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+    /* =====================================================
+       RESULTS SECTION
+    ===================================================== */
+    .results-section {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      animation: fadeUp 0.5s ease both 0.1s;
+    }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 32px;
+      border: 1px dashed var(--border-subtle);
+      border-radius: 18px;
+      background: var(--bg-surface);
+      text-align: center;
+      min-height: 300px;
+    }
+
+    .empty-state-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-default);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .empty-state-icon svg { width: 24px; height: 24px; color: var(--text-accent); }
+
+    .empty-state h3 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .empty-state p {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      max-width: 300px;
+      line-height: 1.6;
+    }
+
+    .empty-state-steps {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      text-align: left;
+    }
+
+    .empty-state-step {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 1px solid var(--border-default);
+      background: var(--bg-elevated);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      color: var(--text-accent);
+      flex-shrink: 0;
+    }
+
+    /* =====================================================
+       MESSAGE COMPONENTS
+    ===================================================== */
+    .message {
+      border-radius: 12px;
+      overflow: hidden;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .message-inner {
+      padding: 14px 18px;
+      border-radius: 0 10px 10px 0;
+    }
+
+    .message-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-bottom: 7px;
+    }
+
+    .message-header svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .message-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .message-body { font-size: 0.8rem; line-height: 1.65; }
+
+    .message.warning .message-inner {
+      background: var(--warning-bg);
+      border: 1px solid var(--warning-border);
+      border-left: 3px solid var(--warning-border-l);
+    }
+
+    .message.warning .message-header svg,
+    .message.warning .message-label { color: var(--warning-label); stroke: var(--warning-label); }
+
+    .message.warning .message-body { color: var(--warning-text); }
+
+    .message.insight .message-inner {
+      background: var(--info-bg);
+      border: 1px solid var(--info-border);
+      border-left: 3px solid var(--info-border-l);
+    }
+
+    .message.insight .message-header svg,
+    .message.insight .message-label { color: var(--info-label); stroke: var(--info-label); }
+
+    .message.insight .message-body { color: var(--info-text); }
+
+    /* =====================================================
+       CHART CARD
+    ===================================================== */
+    .chart-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      animation: fadeUp 0.5s ease both 0.15s;
+    }
+
+    .chart-card-header {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--bg-elevated);
+    }
+
+    .chart-card-title {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .chart-card-title svg { width: 13px; height: 13px; color: var(--text-accent); stroke: var(--text-accent); }
+
+    .chart-card-meta {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      color: var(--text-muted);
+    }
+
+    .chart-output { padding: 16px; }
+
+    /* =====================================================
+       FOOTER
+    ===================================================== */
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 14px 32px;
+    }
+
+    .footer-inner {
+      max-width: 1380px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-copy {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .footer-org { font-size: 0.7rem; color: var(--text-secondary); }
+
+    /* =====================================================
+       ANIMATIONS
+    ===================================================== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ===================================================== */
+    @media (max-width: 900px) {
+      .dashboard-layout { grid-template-columns: 1fr; }
+      .sidebar { position: static; }
+      .chart-type-pills { justify-content: flex-start; }
+      .page-hero { flex-direction: column; align-items: flex-start; }
+      main { padding: 20px; }
+      .header-inner { padding: 12px 20px; }
+      .theme-toggle-label { display: none; }
+    }
+
+  </style>
 </head>
 
 <body>
 
-    <div class="container">
+  <!-- Decorative geometry — theme-aware via CSS vars -->
+  <div class="deco-ring deco-ring--1"></div>
+  <div class="deco-ring deco-ring--2"></div>
 
-        <!-- ========================================= -->
-        <!-- TITLE -->
-        <!-- ========================================= -->
+  <div class="deco-crosshair deco-crosshair--tl">
+    <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="30" stroke-width="1"/>
+      <circle cx="40" cy="40" r="15" stroke-width="0.75"/>
+      <line x1="40" y1="0" x2="40" y2="80" stroke-width="0.75"/>
+      <line x1="0" y1="40" x2="80" y2="40" stroke-width="0.75"/>
+      <circle cx="40" cy="40" r="2.5" fill="currentColor"/>
+    </svg>
+  </div>
 
-        <h1>Control Chart Tool</h1>
+  <div class="deco-crosshair deco-crosshair--br">
+    <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="40" height="40" stroke-width="0.75"/>
+      <rect x="20" y="20" width="20" height="20" stroke-width="0.75"/>
+      <line x1="30" y1="0" x2="30" y2="60" stroke-width="0.75"/>
+      <line x1="0" y1="30" x2="60" y2="30" stroke-width="0.75"/>
+    </svg>
+  </div>
 
-        <!-- ========================================= -->
-        <!-- FORM CARD -->
-        <!-- ========================================= -->
+  <svg class="deco-dots" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="8" cy="8" r="2"/><circle cx="28" cy="8" r="2"/><circle cx="48" cy="8" r="2"/><circle cx="68" cy="8" r="2"/>
+    <circle cx="8" cy="28" r="2"/><circle cx="28" cy="28" r="2"/><circle cx="48" cy="28" r="2"/><circle cx="68" cy="28" r="2"/>
+    <circle cx="8" cy="48" r="2"/><circle cx="28" cy="48" r="2"/><circle cx="48" cy="48" r="2"/><circle cx="68" cy="48" r="2"/>
+    <circle cx="8" cy="68" r="2"/><circle cx="28" cy="68" r="2"/><circle cx="48" cy="68" r="2"/><circle cx="68" cy="68" r="2"/>
+  </svg>
 
-        <div class="card">
+  <div class="page-wrapper">
 
-            <form action="/upload" method="post" enctype="multipart/form-data">
+    <!-- ===== HEADER ===== -->
+    <header>
+      <div class="header-inner">
 
-                <!-- FILE -->
-
-                <label>Upload Data File</label>
-
-                <input
-                    type="file"
-                    name="file"
-                    accept=".xlsx,.xls,.csv,.txt"
-                    required
-                >
-
-                <!-- CHART NAME -->
-
-                <label>Chart Name</label>
-
-                <input
-                    type="text"
-                    name="chart_name"
-                    placeholder="e.g. Daily Production"
-                >
-
-                <!-- CHART TYPE -->
-
-                <label>Select Chart Type</label>
-
-                <select name="chart" id="chart-select">
-
-                    <option value="xbar_r">Xbar-R Chart</option>
-
-                    <option value="xbar_s">Xbar-S Chart</option>
-
-                    <option value="p_chart">P Chart</option>
-
-                    <option value="np_chart">NP Chart</option>
-
-                    <option value="c_chart">C Chart</option>
-
-                    <option value="u_chart">U Chart</option>
-
-                    <option value="imr_chart">IMR Chart</option>
-
-                </select>
-
-                <!-- SUBGROUP SIZE -->
-
-                <div id="subgroup-container">
-
-                    <label>Subgroup Size</label>
-
-                    <input
-                        type="number"
-                        id="subgroup-input"
-                        name="subgroup_size"
-                        min="2"
-                        max="25"
-                    >
-
-                </div>
-
-                <!-- SAMPLE SIZE -->
-
-                <div id="sample-size-container" style="display:none;">
-
-                    <label>Sample Size</label>
-
-                    <input
-                        type="number"
-                        name="sample_size"
-                        min="1"
-                    >
-
-                </div>
-
-                <!-- SPEC LIMITS -->
-
-                <div id="spec-limit-container">
-
-                    <label>Lower Specification Limit (LSL)</label>
-
-                    <input
-                        type="number"
-                        step="any"
-                        name="lsl"
-                    >
-
-                    <label>Upper Specification Limit (USL)</label>
-
-                    <input
-                        type="number"
-                        step="any"
-                        name="usl"
-                    >
-
-                </div>
-
-                <!-- BUTTON -->
-
-                <button type="submit">
-
-                    Generate Control Chart
-
-                </button>
-
-            </form>
-
+        <div class="brand">
+          <div class="brand-icon">
+            <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="11" width="3" height="7" rx="1" fill="white" opacity="0.7"/>
+              <rect x="7" y="6" width="3" height="12" rx="1" fill="white"/>
+              <rect x="12" y="8" width="3" height="10" rx="1" fill="white" opacity="0.85"/>
+              <rect x="17" y="4" width="3" height="14" rx="1" fill="white" opacity="0.6"/>
+              <line x1="1" y1="9" x2="20" y2="9" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-dasharray="2 1"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <h1>SPC Insight Pro</h1>
+            <p>Statistical Process Control Platform</p>
+          </div>
         </div>
 
-        <!-- ========================================= -->
-        <!-- WARNING -->
-        <!-- ========================================= -->
+        <div class="header-right">
+          <div class="status-badge">
+            <span class="status-dot"></span>
+            READY
+          </div>
 
-        {% if warning %}
+          <div class="org-tag">AIQM India</div>
 
-            <div class="message warning">
+          <!-- ===== THEME TOGGLE ===== -->
+          <div class="theme-toggle-wrap">
+            <span class="theme-toggle-label" id="theme-label">LIGHT</span>
+            <button
+              class="theme-toggle"
+              id="theme-toggle"
+              role="switch"
+              aria-checked="false"
+              aria-label="Toggle dark mode"
+              title="Toggle dark mode"
+            >
+              <span class="theme-toggle-thumb">
+                <!-- Sun icon (light mode) -->
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <circle cx="12" cy="12" r="4"/>
+                  <line x1="12" y1="2" x2="12" y2="5"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                  <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
+                  <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
+                  <line x1="2" y1="12" x2="5" y2="12"/>
+                  <line x1="19" y1="12" x2="22" y2="12"/>
+                  <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
+                  <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
+                </svg>
+                <!-- Moon icon (dark mode) -->
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                  <path d="M21 12.79A9 9 0 1111.21 3a7 7 0 009.79 9.79z"/>
+                </svg>
+              </span>
+            </button>
+          </div>
 
-                {{ warning }}
+        </div>
+      </div>
+    </header>
 
+    <!-- ===== MAIN ===== -->
+    <main>
+
+      <div class="page-hero">
+        <div class="page-hero-left">
+          <h2>Control Chart <span>Analysis</span></h2>
+          <p>Upload your process data, configure chart parameters, and generate statistically validated control charts with automated rule detection.</p>
+        </div>
+        <div class="chart-type-pills" aria-label="Supported chart types">
+          <span class="pill" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
+          <span class="pill" data-chart="xbar_s"><span class="pill-dot"></span>Xbar-S</span>
+          <span class="pill" data-chart="p_chart"><span class="pill-dot"></span>P</span>
+          <span class="pill" data-chart="np_chart"><span class="pill-dot"></span>NP</span>
+          <span class="pill" data-chart="c_chart"><span class="pill-dot"></span>C</span>
+          <span class="pill" data-chart="u_chart"><span class="pill-dot"></span>U</span>
+          <span class="pill" data-chart="imr_chart"><span class="pill-dot"></span>IMR</span>
+        </div>
+      </div>
+
+      <div class="dashboard-layout">
+
+        <!-- ===== SIDEBAR / FORM ===== -->
+        <aside class="sidebar">
+          <div class="card">
+
+            <div class="card-header">
+              <div class="card-header-icon">
+                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 12.5V3.5A1 1 0 013 2.5h7l3.5 3.5v6.5a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke-width="1.5"/>
+                  <path d="M10 2.5V6h3.5" stroke-linejoin="round" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div>
+                <div class="card-title">Chart Configuration</div>
+                <div class="card-subtitle">Set parameters for your analysis</div>
+              </div>
             </div>
 
-        {% endif %}
+            <div class="card-body">
+              <form action="/upload" method="post" enctype="multipart/form-data">
 
-        <!-- ========================================= -->
-        <!-- INSIGHTS -->
-        <!-- ========================================= -->
+                <div class="form-section-label">Data Source</div>
 
-        {% if insight %}
+                <div class="form-group">
+                  <label for="file-input">Upload Data File</label>
+                  <div class="file-upload-area">
+                    <input type="file" name="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" required />
+                    <div class="file-upload-ui">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 16V8m0 0l-3 3m3-3l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M20 21H4a1 1 0 01-1-1V4a1 1 0 011-1h12l5 5v12a1 1 0 01-1 1z" stroke-linejoin="round"/>
+                      </svg>
+                      <div class="file-upload-ui-text">
+                        <strong>Click to upload or drag &amp; drop</strong>
+                        <span>.xlsx · .xls · .csv · .txt</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
 
-            <div class="message insight">
+                <div class="form-group">
+                  <label for="chart_name">Chart Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                  <input type="text" name="chart_name" id="chart_name" placeholder="e.g. Daily Production Line A" />
+                </div>
 
-                {{ insight|safe }}
+                <hr class="form-divider"/>
 
+                <div class="form-section-label">Chart Parameters</div>
+
+                <div class="form-group">
+                  <label for="chart-select">Chart Type</label>
+                  <div class="select-wrapper">
+                    <select name="chart" id="chart-select">
+                      <option value="xbar_r">Xbar-R Chart</option>
+                      <option value="xbar_s">Xbar-S Chart</option>
+                      <option value="p_chart">P Chart</option>
+                      <option value="np_chart">NP Chart</option>
+                      <option value="c_chart">C Chart</option>
+                      <option value="u_chart">U Chart</option>
+                      <option value="imr_chart">IMR Chart</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div id="subgroup-container" class="form-group">
+                  <label for="subgroup-input">Subgroup Size</label>
+                  <input type="number" id="subgroup-input" name="subgroup_size" min="2" max="25" placeholder="2 – 25" />
+                </div>
+
+                <div id="sample-size-container" class="form-group" style="display:none;">
+                  <label for="sample_size">Sample Size</label>
+                  <input type="number" name="sample_size" id="sample_size" min="1" placeholder="Enter sample size" />
+                </div>
+
+                <div id="spec-limit-container">
+                  <hr class="form-divider"/>
+                  <div class="form-section-label">Specification Limits</div>
+                  <div class="input-row">
+                    <div class="form-group">
+                      <label for="lsl">LSL</label>
+                      <input type="number" step="any" name="lsl" id="lsl" placeholder="Lower" />
+                    </div>
+                    <div class="form-group">
+                      <label for="usl">USL</label>
+                      <input type="number" step="any" name="usl" id="usl" placeholder="Upper" />
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 13L6 8l3 3 3-5 2-1" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Generate Control Chart
+                </button>
+
+              </form>
             </div>
+          </div>
+        </aside>
 
-        {% endif %}
+        <!-- ===== RESULTS ===== -->
+        <section class="results-section" aria-label="Chart output and analysis">
 
-        <!-- ========================================= -->
-        <!-- CHART -->
-        <!-- ========================================= -->
-
-        {% if graph %}
-
-            <div class="chart-container">
-
-                {{ graph|safe }}
-
+          {% if warning %}
+          <div class="message warning">
+            <div class="message-inner">
+              <div class="message-header">
+                <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 2L14 13H2L8 2z" stroke-linejoin="round"/>
+                  <path d="M8 6v3.5M8 11v.5" stroke-linecap="round"/>
+                </svg>
+                <span class="message-label">Process Warning</span>
+              </div>
+              <div class="message-body">{{ warning }}</div>
             </div>
+          </div>
+          {% endif %}
 
-        {% endif %}
+          {% if insight %}
+          <div class="message insight">
+            <div class="message-inner">
+              <div class="message-header">
+                <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="8" cy="8" r="6"/>
+                  <path d="M8 5v3.5M8 11v.5" stroke-linecap="round"/>
+                </svg>
+                <span class="message-label">Statistical Insight</span>
+              </div>
+              <div class="message-body">{{ insight|safe }}</div>
+            </div>
+          </div>
+          {% endif %}
 
-    </div>
+          {% if graph %}
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <svg viewBox="0 0 14 14" fill="none" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                  <polyline points="1,10 4,6 7,8 10,3 13,5"/>
+                  <line x1="1" y1="12" x2="13" y2="12" stroke-width="0.75" stroke-dasharray="1.5 1"/>
+                </svg>
+                Control Chart Output
+              </div>
+              <span class="chart-card-meta">SPC Insight Pro &bull; AIQM India</span>
+            </div>
+            <div class="chart-output">{{ graph|safe }}</div>
+          </div>
 
-    <!-- ========================================= -->
-    <!-- JAVASCRIPT -->
-    <!-- ========================================= -->
+          {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="3,17 8,12 12,14 17,7 21,10" stroke-linecap="round" stroke-linejoin="round"/>
+                <line x1="3" y1="20" x2="21" y2="20" stroke-width="0.75"/>
+                <line x1="3" y1="3" x2="3" y2="20" stroke-width="0.75"/>
+              </svg>
+            </div>
+            <h3>No Chart Generated Yet</h3>
+            <p>Configure your parameters in the panel and click "Generate Control Chart" to begin your analysis.</p>
+            <div class="empty-state-steps">
+              <div class="empty-state-step">
+                <span class="step-num">1</span>
+                Upload your .xlsx, .csv, or .txt data file
+              </div>
+              <div class="empty-state-step">
+                <span class="step-num">2</span>
+                Select a chart type and configure parameters
+              </div>
+              <div class="empty-state-step">
+                <span class="step-num">3</span>
+                Click Generate to run the SPC analysis
+              </div>
+            </div>
+          </div>
+          {% endif %}
 
-    <script>
+        </section>
+      </div>
+    </main>
 
-        const subgroupInput = document.getElementById(
-        "subgroup-input"
-        );
+    <footer>
+      <div class="footer-inner">
+        <span class="footer-copy">v2.0 &bull; SPC Insight Pro</span>
+        <span class="footer-org">Developed by AIQM India</span>
+      </div>
+    </footer>
 
-        const chartSelect = document.getElementById(
-            "chart-select"
-        );
+  </div>
 
-        const subgroupContainer = document.getElementById(
-            "subgroup-container"
-        );
+  <!-- ===================================================
+       JAVASCRIPT
+       1. Original form toggle logic — 100% preserved.
+       2. Theme toggle — reads/writes localStorage so the
+          user's preference persists across page reloads.
+  =================================================== -->
+  <script>
+    /* ---- THEME TOGGLE ---- */
+    const html        = document.documentElement;
+    const toggleBtn   = document.getElementById('theme-toggle');
+    const themeLabel  = document.getElementById('theme-label');
 
-        const sampleSizeContainer = document.getElementById(
-            "sample-size-container"
-        );
+    function applyTheme(isDark) {
+      html.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      toggleBtn.setAttribute('aria-checked', isDark ? 'true' : 'false');
+      themeLabel.textContent = isDark ? 'DARK' : 'LIGHT';
+      localStorage.setItem('spc-theme', isDark ? 'dark' : 'light');
+    }
 
-        const specLimitContainer = document.getElementById(
-            "spec-limit-container"
-        );
+    // On load: restore saved preference, default to light
+    const savedTheme = localStorage.getItem('spc-theme');
+    applyTheme(savedTheme === 'dark');
 
-        function toggleFields() {
+    toggleBtn.addEventListener('click', () => {
+      const currentlyDark = html.getAttribute('data-theme') === 'dark';
+      applyTheme(!currentlyDark);
+    });
 
-            const chartType = chartSelect.value;
+    /* ---- PILL HIGHLIGHT — syncs with the chart dropdown ---- */
+    const allPills = document.querySelectorAll('.pill[data-chart]');
 
-            // =====================================
-            // P & NP CHARTS
-            // =====================================
-
-            if (
-                chartType === "p_chart" ||
-                chartType === "np_chart"
-            ) {
-
-                sampleSizeContainer.style.display = "block";
-
-                subgroupContainer.style.display = "none";
-
-                specLimitContainer.style.display = "none";
-
-                subgroupInput.required = false;
-            }
-
-            // =====================================
-            // C CHART
-            // =====================================
-
-            else if (
-                chartType === "c_chart"
-            ) {
-
-                sampleSizeContainer.style.display = "none";
-
-                subgroupContainer.style.display = "none";
-
-                specLimitContainer.style.display = "none";
-
-                subgroupInput.required = false;
-            }
-
-            // =====================================
-            // C CHART
-            // =====================================
-
-            else if (
-                chartType === "u_chart"
-            ) {
-
-                sampleSizeContainer.style.display = "block";
-
-                subgroupContainer.style.display = "none";
-
-                specLimitContainer.style.display = "none";
-
-                subgroupInput.required = false;
-            }
-
-            // =====================================
-            // IMR CHART
-            // =====================================
-
-            else if (
-                chartType === "imr_chart"
-            ) {
-
-                sampleSizeContainer.style.display = "none";
-
-                subgroupContainer.style.display = "none";
-
-                specLimitContainer.style.display = "block";
-
-                subgroupInput.required = false;
-            }
-
-            // =====================================
-            // XBAR CHARTS
-            // =====================================
-
-            else {
-
-                sampleSizeContainer.style.display = "none";
-
-                subgroupContainer.style.display = "block";
-
-                specLimitContainer.style.display = "block";
-
-                subgroupInput.required = true;
-            }
+    function syncActivePill(chartValue) {
+      allPills.forEach(pill => {
+        if (pill.dataset.chart === chartValue) {
+          pill.classList.add('pill--active');
+        } else {
+          pill.classList.remove('pill--active');
         }
+      });
+    }
 
-        // Run on dropdown change
+    /* ---- ORIGINAL FORM TOGGLE LOGIC — PRESERVED INTACT ---- */
+    const subgroupInput       = document.getElementById("subgroup-input");
+    const chartSelect         = document.getElementById("chart-select");
+    const subgroupContainer   = document.getElementById("subgroup-container");
+    const sampleSizeContainer = document.getElementById("sample-size-container");
+    const specLimitContainer  = document.getElementById("spec-limit-container");
 
-        chartSelect.addEventListener(
-            "change",
-            toggleFields
-        );
+    function toggleFields() {
+      const chartType = chartSelect.value;
 
-        // Run on page load
+      if (chartType === "p_chart" || chartType === "np_chart") {
+        sampleSizeContainer.style.display = "block";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
+        subgroupInput.required = false;
+      } else if (chartType === "c_chart") {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
+        subgroupInput.required = false;
+      } else if (chartType === "u_chart") {
+        sampleSizeContainer.style.display = "block";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
+        subgroupInput.required = false;
+      } else if (chartType === "imr_chart") {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "block";
+        subgroupInput.required = false;
+      } else {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "block";
+        specLimitContainer.style.display  = "block";
+        subgroupInput.required = true;
+      }
+    }
 
-        toggleFields();
+    chartSelect.addEventListener("change", () => {
+      toggleFields();
+      syncActivePill(chartSelect.value);
+    });
 
-    </script>
+    // Run both on page load so the default dropdown value is reflected immediately
+    toggleFields();
+    syncActivePill(chartSelect.value);
+
+    /* ---- FILE NAME DISPLAY ---- */
+    const fileInput      = document.getElementById("file-input");
+    const fileUploadText = document.querySelector(".file-upload-ui-text");
+
+    if (fileInput && fileUploadText) {
+      fileInput.addEventListener("change", function () {
+        if (this.files && this.files.length > 0) {
+          const fname = this.files[0].name;
+          fileUploadText.innerHTML = `
+            <strong>${fname}</strong>
+            <span>${(this.files[0].size / 1024).toFixed(1)} KB &bull; Ready to upload</span>
+          `;
+        }
+      });
+    }
+  </script>
 
 </body>
-
 </html>
