@@ -1,0 +1,11 @@
+Flask
+Flask-Login
+Flask-SQLAlchemy
+kaleido
+numpy
+openpyxl
+pandas
+plotly
+reportlab
+scipy
+Werkzeug

@@ -342,6 +342,30 @@
       letter-spacing: 0.05em;
     }
 
+    .status-badge--ready {
+      --status-color: #16a34a;
+      --status-bg: rgba(22, 163, 74, 0.08);
+      --status-border: rgba(22, 163, 74, 0.2);
+    }
+
+    .status-badge--processing {
+      --status-color: #d97706;
+      --status-bg: rgba(245, 158, 11, 0.1);
+      --status-border: rgba(245, 158, 11, 0.28);
+    }
+
+    .status-badge--report {
+      --status-color: #2563eb;
+      --status-bg: rgba(37, 99, 235, 0.1);
+      --status-border: rgba(37, 99, 235, 0.28);
+    }
+
+    .status-badge--error {
+      --status-color: #dc2626;
+      --status-bg: rgba(220, 38, 38, 0.09);
+      --status-border: rgba(220, 38, 38, 0.24);
+    }
+
     .status-dot {
       width: 6px;
       height: 6px;
@@ -364,6 +388,43 @@
       border-radius: 6px;
       background: var(--org-tag-bg);
       letter-spacing: 0.01em;
+    }
+
+    .auth-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-left: 4px;
+    }
+
+    .auth-user {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      color: var(--text-secondary);
+      max-width: 160px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .auth-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border-default);
+      background: var(--bg-elevated);
+      color: var(--text-accent);
+      text-decoration: none;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+
+    .auth-link:hover {
+      border-color: var(--border-focus);
+      background: var(--bg-surface);
     }
 
     /* =====================================================
@@ -1098,7 +1159,7 @@
     <header>
       <div class="header-inner">
 
-        <a href="/" class="brand">
+        <a href="{{ url_for('spc.home') }}" class="brand">
           <div class="brand-icon">
             <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="11" width="3" height="7" rx="1" fill="white" opacity="0.7"/>
@@ -1115,12 +1176,18 @@
         </a>
 
         <div class="header-right">
-          <div class="status-badge">
-            <span class="status-dot"></span>
-            Live
-          </div>
+          {% include "components/system_status.html" %}
 
           <div class="org-tag">AIQM India</div>
+
+          <div class="auth-controls">
+            {% if current_user.is_authenticated %}
+              <span class="auth-user">{{ current_user.username }}</span>
+              <a href="{{ url_for('auth.logout') }}" class="auth-link">Logout</a>
+            {% else %}
+              <a href="{{ url_for('auth.login') }}" class="auth-link">Login</a>
+            {% endif %}
+          </div>
 
           <!-- ===== THEME TOGGLE ===== -->
           <div class="theme-toggle-wrap">
@@ -1197,7 +1264,7 @@
             </div>
 
             <div class="card-body">
-              <form action="/upload" method="post" enctype="multipart/form-data">
+              <form action="{{ url_for('spc.upload_file') }}" method="post" enctype="multipart/form-data">
 
                 <div class="form-section-label">Data Source</div>
 
@@ -1275,7 +1342,7 @@
                 </button>
                 {% if graph %}
 
-                <a href="/download-spc-report" class="download-btn">
+                <a href="{{ url_for('spc.download_spc_report') }}" class="download-btn">
                     <span class="btn-icon">📄</span>
                     <span>Download Report</span>
                 </a>
