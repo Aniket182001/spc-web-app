@@ -1773,7 +1773,7 @@ def upload_file():
 
     graph_html = fig.to_html(
         full_html=False,
-        include_plotlyjs='cdn',
+        include_plotlyjs=True,
         config={
             'displaylogo': False,
             'responsive': True,
