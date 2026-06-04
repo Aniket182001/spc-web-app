@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SPC Insight Pro</title>
+  <title>QPulse Analytics</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -271,13 +271,15 @@
     }
 
     .header-inner {
-      max-width: 1380px;
-      margin: 0 auto;
-      padding: 14px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
+        max-width: 1380px;
+        margin: 0 auto;
+        padding: 14px 40px;
+
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+
+        gap: 16px;
     }
 
     .brand {
@@ -380,14 +382,33 @@
     }
 
     .org-tag {
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--org-tag-color);
-      padding: 3px 10px;
-      border: 1px solid var(--org-tag-border);
-      border-radius: 6px;
-      background: var(--org-tag-bg);
-      letter-spacing: 0.01em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        font-size: 0.75rem;
+        font-weight: 600;
+
+        color: var(--org-tag-color);
+
+        padding: 5px 12px;
+
+        border: 1px solid var(--org-tag-border);
+
+        border-radius: 8px;
+
+        background: var(--org-tag-bg);
+
+        letter-spacing: 0.01em;
+    }
+
+    .org-logo {
+        width: 22px;
+        height: 22px;
+
+        object-fit: contain;
+
+        flex-shrink: 0;
     }
 
     .auth-controls {
@@ -1170,7 +1191,7 @@
             </svg>
           </div>
           <div class="brand-text">
-            <h1>SPC Insight Pro</h1>
+            <h1>QPulse Analytics</h1>
             <p>Statistical Process Control Platform</p>
           </div>
         </a>
@@ -1178,7 +1199,13 @@
         <div class="header-right">
           {% include "components/system_status.html" %}
 
-          <div class="org-tag">AIQM India</div>
+          <div class="org-tag">
+              <img src="{{ url_for('static', filename='images/aiqm-logo.png') }}"
+                  alt="AIQM Logo"
+                  class="org-logo">
+
+              <span>AIQM India</span>
+          </div>
 
           <div class="auth-controls">
             {% if current_user.is_authenticated %}
@@ -1396,7 +1423,7 @@
                 </svg>
                 Control Chart Output
               </div>
-              <span class="chart-card-meta">SPC Insight Pro &bull; AIQM India</span>
+              <span class="chart-card-meta">QPulse Analytics &bull; AIQM India</span>
             </div>
             <div class="chart-output">{{ graph|safe }}</div>
           </div>
@@ -1435,7 +1462,7 @@
 
     <footer>
       <div class="footer-inner">
-        <span class="footer-copy">v2.0 &bull; SPC Insight Pro</span>
+        <span class="footer-copy">v2.0 &bull; QPulse Analytics</span>
         <span class="footer-org">Developed by AIQM India</span>
       </div>
     </footer>

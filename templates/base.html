@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}SPC Insight Pro{% endblock %}</title>
+  <title>{% block title %}QPulse Analytics{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -245,6 +245,20 @@
       align-items: center;
       justify-content: space-between;
       gap: 16px;
+    }
+
+    .org-tag {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .org-logo {
+        width: 18px;
+        height: 18px;
+        object-fit: contain;
+        display: block;
+        flex-shrink: 0;
     }
 
     .brand {
@@ -713,16 +727,27 @@
             </svg>
           </div>
           <div class="brand-text">
-            <h1>SPC Insight Pro</h1>
+            <h1>QPulse Analytics</h1>
             <p>Statistical Process Control Platform</p>
           </div>
         </a>
 
         <div class="header-right">
-          {% include "components/system_status.html" %}
 
-          <div class="org-tag">AIQM India</div>
+            {% if request.endpoint not in ['auth.login', 'auth.register'] %}
+                {% include "components/system_status.html" %}
+            {% endif %}
 
+          <div class="org-tag">
+              <img
+                  src="{{ url_for('static', filename='images/aiqm-logo.png') }}"
+                  alt="AIQM Logo"
+                  class="org-logo"
+              >
+              <span>AIQM India</span>
+          </div>
+
+          {% if request.endpoint not in ['auth.login', 'auth.register'] %}
           <div class="auth-controls">
             {% if current_user.is_authenticated %}
               <span class="auth-user">{{ current_user.username }}</span>
@@ -732,7 +757,7 @@
               <a href="{{ url_for('auth.register') }}" class="auth-link {% if request.endpoint == 'auth.register' %}is-active{% endif %}">Register</a>
             {% endif %}
           </div>
-
+          {% endif %}
           <div class="theme-toggle-wrap">
             <span class="theme-toggle-label" id="theme-label">LIGHT</span>
             <button
