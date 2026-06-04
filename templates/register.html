@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Register - SPC Insight Pro{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="card auth-card">
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="6" cy="5" r="2.5" stroke-width="1.5"/>
+          <path d="M2.5 13a3.5 3.5 0 017 0" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M11.5 4.5v4M9.5 6.5h4" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">Create Account</div>
+        <div class="card-subtitle">Register for SPC Insight Pro</div>
+      </div>
+    </div>
+
+    <div class="card-body">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="flash">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="post">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-group">
+          <label for="confirm_password">Confirm Password</label>
+          <input id="confirm_password" name="confirm_password" type="password" autocomplete="new-password" required>
+        </div>
+
+        <button type="submit" class="btn-primary">Register</button>
+      </form>
+
+      <div class="auth-footer">
+        Already have an account?
+        <a href="{{ url_for('auth.login') }}">Login</a>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

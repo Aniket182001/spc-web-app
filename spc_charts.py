@@ -1,9 +1,9 @@
 from flask import (
     Blueprint,
     render_template,
-    request,
-    send_file
+    request
 )
+from flask_login import login_required
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
@@ -86,12 +86,14 @@ def check_rule2(points, center_line):
 # =========================================================
 
 @spc_bp.route("/")
+@login_required
 def home():
     return render_template(
         "index.html",
         graph=None,
         insight=None,
-        warning=None
+        warning=None,
+        system_status="ready"
     )
 
 
@@ -100,6 +102,7 @@ def home():
 # =========================================================
 
 @spc_bp.route('/upload', methods=['POST'])
+@login_required
 def upload_file():
     sample_size_input = request.form.get('sample_size')
 
@@ -108,7 +111,11 @@ def upload_file():
     # =====================================================
 
     if 'file' not in request.files:
-        return "❌ No file part in request"
+        return render_template(
+            'index.html',
+            insight="❌ No file part in request",
+            system_status="error"
+        )
 
     file = request.files['file']
 
@@ -116,7 +123,8 @@ def upload_file():
 
         return render_template(
             'index.html',
-            insight="❌ Please select a file."
+            insight="❌ Please select a file.",
+            system_status="error"
         )
 
     if not allowed_file(file.filename):
@@ -126,7 +134,8 @@ def upload_file():
             insight=(
                 "❌ Invalid file type. "
                 "Please upload CSV, TXT, XLSX, or XLS file."
-            )
+            ),
+            system_status="error"
         )
 
     # =====================================================
@@ -175,7 +184,11 @@ def upload_file():
 
     except PermissionError:
 
-        return "❌ Please close the Excel file before uploading"
+        return render_template(
+            'index.html',
+            insight="❌ Please close the Excel file before uploading",
+            system_status="error"
+        )
 
     # =====================================================
     # READ FILE
@@ -210,7 +223,11 @@ def upload_file():
 
     else:
 
-        return "❌ Unsupported file format"
+        return render_template(
+            'index.html',
+            insight="❌ Unsupported file format",
+            system_status="error"
+        )
 
     # =====================================================
     # CLEAN DATA
@@ -225,7 +242,11 @@ def upload_file():
 
     if len(df) == 0:
 
-        return "❌ No valid numeric data found"
+        return render_template(
+            'index.html',
+            insight="❌ No valid numeric data found",
+            system_status="error"
+        )
 
     warning = None
 
@@ -238,7 +259,11 @@ def upload_file():
         data = df.iloc[:, 0].values
 
         if len(data) < subgroup_size:
-            return "❌ Not enough data for subgrouping"
+            return render_template(
+                'index.html',
+                insight="❌ Not enough data for subgrouping",
+                system_status="error"
+            )
 
         total_points = len(data)
 
@@ -276,7 +301,11 @@ def upload_file():
 
         if n not in A2_TABLE:
 
-            return "❌ Unsupported subgroup size for Xbar-R"
+            return render_template(
+                'index.html',
+                insight="❌ Unsupported subgroup size for Xbar-R",
+                system_status="error"
+            )
 
         # -------------------------------------------------
         # CALCULATIONS
@@ -535,7 +564,11 @@ def upload_file():
         data = df.iloc[:, 0].values
 
         if len(data) < subgroup_size:
-            return "❌ Not enough data for subgrouping"
+            return render_template(
+                'index.html',
+                insight="❌ Not enough data for subgrouping",
+                system_status="error"
+            )
 
         total_points = len(data)
 
@@ -573,7 +606,11 @@ def upload_file():
 
         if n not in A3_TABLE:
 
-            return "❌ Unsupported subgroup size for Xbar-S"
+            return render_template(
+                'index.html',
+                insight="❌ Unsupported subgroup size for Xbar-S",
+                system_status="error"
+            )
 
         # -------------------------------------------------
         # CALCULATIONS
@@ -1296,7 +1333,11 @@ def upload_file():
 
         if len(data) < 2:
 
-            return "❌ IMR Chart requires at least 2 observations"
+            return render_template(
+                'index.html',
+                insight="❌ IMR Chart requires at least 2 observations",
+                system_status="error"
+            )
 
         # -------------------------------------------------
         # CALCULATIONS
@@ -1549,7 +1590,11 @@ def upload_file():
     # -------------------------------------------------
     
     else:
-        return "❌ Invalid chart type selected"
+        return render_template(
+            'index.html',
+            insight="❌ Invalid chart type selected",
+            system_status="error"
+        )
 
     # =====================================================
     # COMMON LAYOUT  –  SPC Insight Pro theme
@@ -1715,7 +1760,16 @@ def upload_file():
     )
 
     chart_image_path = "static/latest_chart.png"
-    fig.write_image(chart_image_path)
+    try:
+        fig.write_image(chart_image_path)
+    except Exception:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        return render_template(
+            'index.html',
+            insight="❌ Chart generation failed. Please check the server chart export setup.",
+            system_status="error"
+        )
 
     graph_html = fig.to_html(
         full_html=False,
@@ -1759,7 +1813,8 @@ def upload_file():
         'index.html',
         graph=graph_html,
         insight=insight,
-        warning=warning
+        warning=warning,
+        system_status="processing"
     )
 
     # =========================================================
@@ -1767,6 +1822,7 @@ def upload_file():
     # =========================================================
 
 @spc_bp.route("/download-spc-report")
+@login_required
 def download_spc_report():
 
     output_pdf = "static/spc_report.pdf"
@@ -1778,7 +1834,8 @@ def download_spc_report():
         output_pdf
     )
 
-    return send_file(
-        output_pdf,
-        as_attachment=True
+    return render_template(
+        "report_status.html",
+        report_url="/static/spc_report.pdf",
+        system_status="report"
     )

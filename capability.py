@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request
+from flask_login import login_required
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
@@ -23,9 +24,13 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # =========================
 
 @capability_bp.route('/capability')
+@login_required
 def capability_home():
 
-    return render_template('capability.html')
+    return render_template(
+        'capability.html',
+        system_status="ready"
+    )
 
 
 # =========================
@@ -33,6 +38,7 @@ def capability_home():
 # =========================
 
 @capability_bp.route('/capability/analyze', methods=['POST'])
+@login_required
 def capability_analysis():
 
     file = request.files['file']
@@ -41,14 +47,16 @@ def capability_analysis():
 
         return render_template(
             'capability.html',
-            insight="❌ Please select a file."
+            insight="❌ Please select a file.",
+            system_status="error"
         )
 
     if not allowed_file(file.filename):
 
         return render_template(
             'capability.html',
-            insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file."
+            insight="❌ Invalid file type. Please upload CSV, TXT, XLSX, or XLS file.",
+            system_status="error"
         )
 
 
@@ -80,7 +88,11 @@ def capability_analysis():
 
     else:
 
-        return "❌ Unsupported file format"
+        return render_template(
+            'capability.html',
+            insight="❌ Unsupported file format",
+            system_status="error"
+        )
 
     # Clean numeric data
 
@@ -94,7 +106,8 @@ def capability_analysis():
 
         return render_template(
             'capability.html',
-            insight="❌ No valid numeric data found."
+            insight="❌ No valid numeric data found.",
+            system_status="error"
         )
 
     # Parse USL and LSL from form request
@@ -314,7 +327,16 @@ def capability_analysis():
     graph_html = fig.to_html(full_html=False)
     chart_image_path = "static/capability_chart.png"
 
-    fig.write_image(chart_image_path)
+    try:
+        fig.write_image(chart_image_path)
+    except Exception:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        return render_template(
+            'capability.html',
+            insight="❌ Chart generation failed. Please check the server chart export setup.",
+            system_status="error"
+        )
 
     # Delete uploaded file
 
@@ -347,5 +369,6 @@ def capability_analysis():
         'capability.html',
         results=results,
         insight=insight,
-        graph=graph_html
+        graph=graph_html,
+        system_status="processing"
     )

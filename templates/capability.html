@@ -11,6 +11,79 @@
             padding: 40px;
         }
 
+        .topbar {
+            max-width: 900px;
+            margin: 0 auto 18px auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .topbar a {
+            color: #2563eb;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .account-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #334155;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--status-bg, rgba(22, 163, 74, 0.08));
+            border: 1px solid var(--status-border, rgba(22, 163, 74, 0.2));
+            font-size: 0.68rem;
+            color: var(--status-color, #16a34a);
+            font-family: monospace;
+            letter-spacing: 0.05em;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--status-color, #16a34a);
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.8); }
+        }
+
+        .status-badge--ready {
+            --status-color: #16a34a;
+            --status-bg: rgba(22, 163, 74, 0.08);
+            --status-border: rgba(22, 163, 74, 0.2);
+        }
+
+        .status-badge--processing {
+            --status-color: #d97706;
+            --status-bg: rgba(245, 158, 11, 0.1);
+            --status-border: rgba(245, 158, 11, 0.28);
+        }
+
+        .status-badge--report {
+            --status-color: #2563eb;
+            --status-bg: rgba(37, 99, 235, 0.1);
+            --status-border: rgba(37, 99, 235, 0.28);
+        }
+
+        .status-badge--error {
+            --status-color: #dc2626;
+            --status-bg: rgba(220, 38, 38, 0.09);
+            --status-border: rgba(220, 38, 38, 0.24);
+        }
+
         .container {
             max-width: 900px;
             margin: auto;
@@ -81,13 +154,26 @@
 
 <body>
 
+<div class="topbar">
+    <a href="{{ url_for('spc.home') }}">SPC Insight Pro</a>
+    {% include "components/system_status.html" %}
+    <div class="account-actions">
+        {% if current_user.is_authenticated %}
+        <span>{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}">Login</a>
+        {% endif %}
+    </div>
+</div>
+
 <div class="container">
 
     <h1>📊 Process Capability Analysis</h1>
 
     <div class="card">
 
-        <form action="/capability/analyze" method="POST" enctype="multipart/form-data">
+        <form action="{{ url_for('capability.capability_analysis') }}" method="POST" enctype="multipart/form-data">
 
             <label>Upload Data File</label>
             <input type="file" name="file" required>

@@ -1,0 +1,16 @@
+{% set status = system_status|default(g.system_status|default('ready'), true) %}
+{% if status == 'processing' %}
+  {% set status_label = 'Processing' %}
+{% elif status == 'report' %}
+  {% set status_label = 'Generating Report' %}
+{% elif status == 'error' %}
+  {% set status_label = 'Error' %}
+{% else %}
+  {% set status = 'ready' %}
+  {% set status_label = 'System Ready' %}
+{% endif %}
+
+<div class="status-badge status-badge--{{ status }}">
+  <span class="status-dot"></span>
+  {{ status_label }}
+</div>
