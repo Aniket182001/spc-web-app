@@ -160,7 +160,10 @@
     <div class="account-actions">
         {% if current_user.is_authenticated %}
         <span>{{ current_user.username }}</span>
-        <a href="{{ url_for('auth.logout') }}">Logout</a>
+        <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" style="background:none; border:none; color:#2563eb; text-decoration:none; font-weight:bold; cursor:pointer; font-family:inherit; padding:0; font-size:inherit;">Logout</button>
+        </form>
         {% else %}
         <a href="{{ url_for('auth.login') }}">Login</a>
         {% endif %}
