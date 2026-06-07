@@ -13,6 +13,7 @@ from spc_charts import spc_bp
 from capability import capability_bp
 import webbrowser
 from threading import Timer
+from flask_migrate import Migrate
 
 
 def open_browser():
@@ -20,10 +21,14 @@ def open_browser():
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get(
+
+db_url = os.environ.get(
     "DATABASE_URL",
     f"sqlite:///{os.path.join(app.instance_path, 'spc_app.db')}",
 )
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 os.makedirs(app.instance_path, exist_ok=True)
@@ -34,14 +39,12 @@ login_manager.init_app(app)
 login_manager.login_view = "auth.login"
 login_manager.login_message = "Please log in to access SPC Insight Pro."
 
+# Initialize Flask-Migrate
+migrate = Migrate(app, db, render_as_batch=True)
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-
-with app.app_context():
-    db.create_all()
 
 
 # Register modules
