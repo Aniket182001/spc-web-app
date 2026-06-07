@@ -14,6 +14,7 @@ from capability import capability_bp
 import webbrowser
 from threading import Timer
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 
 
 def open_browser():
@@ -30,6 +31,8 @@ if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SESSION_COOKIE_HTTPONLY"] = True
+app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 os.makedirs(app.instance_path, exist_ok=True)
 os.makedirs("static", exist_ok=True)
@@ -41,10 +44,14 @@ login_manager.login_message = "Please log in to access SPC Insight Pro."
 
 # Initialize Flask-Migrate
 migrate = Migrate(app, db, render_as_batch=True)
+csrf = CSRFProtect(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    try:
+        return User.query.get(int(user_id))
+    except ValueError:
+        return None
 
 
 # Register modules

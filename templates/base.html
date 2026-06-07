@@ -751,7 +751,10 @@
           <div class="auth-controls">
             {% if current_user.is_authenticated %}
               <span class="auth-user">{{ current_user.username }}</span>
-              <a href="{{ url_for('auth.logout') }}" class="auth-link">Logout</a>
+              <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <button type="submit" class="auth-link" style="cursor:pointer; font-family:inherit;">Logout</button>
+              </form>
             {% else %}
               <a href="{{ url_for('auth.login') }}" class="auth-link {% if request.endpoint == 'auth.login' %}is-active{% endif %}">Login</a>
               <a href="{{ url_for('auth.register') }}" class="auth-link {% if request.endpoint == 'auth.register' %}is-active{% endif %}">Register</a>
