@@ -6,6 +6,12 @@ from extensions import db, login_manager
 from models import User
 from spc_charts import spc_bp
 from capability import capability_bp
+import webbrowser
+from threading import Timer
+
+
+def open_browser():
+    webbrowser.open_new("http://localhost:5000")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
@@ -63,9 +69,8 @@ def inject_chart_information():
         "selected_chart_summary": summaries[selected_chart],
     }
 
-if __name__ == '__main__':
-
-    print("🚀 Starting SPC Server...")
-    print("👉 Open http://127.0.0.1:5000 in browser")
+if __name__ == "__main__":
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        Timer(1, open_browser).start()
 
     app.run(debug=True)
