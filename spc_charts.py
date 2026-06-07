@@ -1609,6 +1609,13 @@ def upload_file():
         )
 
     # =====================================================
+    # DETECT SINGLE vs DUAL CHART
+    # =====================================================
+
+    SINGLE_CHART_TYPES = {'p_chart', 'np_chart', 'c_chart', 'u_chart'}
+    is_single_chart = chart_type in SINGLE_CHART_TYPES
+
+    # =====================================================
     # COMMON LAYOUT  –  SPC Insight Pro theme
     # =====================================================
 
@@ -1715,7 +1722,7 @@ def upload_file():
             ),
             pad=dict(t=8, b=4)
         ),
-        height=880,
+        height=480 if is_single_chart else 880,
         showlegend=False,
         plot_bgcolor=CLR_BG,
         paper_bgcolor=CLR_PAPER,
@@ -1827,6 +1834,7 @@ def upload_file():
         graph=graph_html,
         insight=insight,
         warning=warning,
+        is_single_chart=is_single_chart,
         system_status="processing",
         selected_chart=chart_type
     )
