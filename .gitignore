@@ -6,3 +6,5 @@ instance/
 *.db
 static/*.png
 static/*.pdf
+static/charts/
+static/reports/
