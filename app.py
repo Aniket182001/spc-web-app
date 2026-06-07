@@ -24,7 +24,7 @@ app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 db_url = os.environ.get(
     "DATABASE_URL",
-    f"sqlite:///{os.path.join(app.instance_path, 'spc_app.db')}",
+    "sqlite:///spc_app.db",
 )
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)

@@ -1693,6 +1693,7 @@
 
     /* ---- ORIGINAL FORM TOGGLE LOGIC — PRESERVED INTACT ---- */
     const subgroupInput       = document.getElementById("subgroup-input");
+    const sampleSizeInput     = document.getElementById("sample_size");
     const chartSelect         = document.getElementById("chart-select");
     const subgroupContainer   = document.getElementById("subgroup-container");
     const sampleSizeContainer = document.getElementById("sample-size-container");
@@ -1720,26 +1721,31 @@
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
+        sampleSizeInput.required = true;
       } else if (chartType === "c_chart") {
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
+        sampleSizeInput.required = false;
       } else if (chartType === "u_chart") {
         sampleSizeContainer.style.display = "block";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
+        sampleSizeInput.required = true;
       } else if (chartType === "imr_chart") {
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "block";
         subgroupInput.required = false;
+        sampleSizeInput.required = false;
       } else {
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "block";
         specLimitContainer.style.display  = "block";
         subgroupInput.required = true;
+        sampleSizeInput.required = false;
       }
     }
 

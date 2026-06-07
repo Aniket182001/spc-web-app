@@ -881,6 +881,13 @@ def upload_file():
 
         defectives = df.iloc[:, 0].values
 
+        if not sample_size_input:
+            return render_template(
+                'index.html',
+                insight="❌ Sample size is required for P Chart.",
+                system_status="error",
+                selected_chart=chart_type
+            )
         sample_size = int(sample_size_input)
 
         sample_sizes = np.full(
@@ -1019,6 +1026,13 @@ def upload_file():
 
         defectives = df.iloc[:, 0].values
 
+        if not sample_size_input:
+            return render_template(
+                'index.html',
+                insight="❌ Sample size is required for NP Chart.",
+                system_status="error",
+                selected_chart=chart_type
+            )
         sample_size = int(sample_size_input)
 
         p_bar = np.mean(defectives) / sample_size
@@ -1233,6 +1247,13 @@ def upload_file():
 
         defects = df.iloc[:, 0].values
 
+        if not sample_size_input:
+            return render_template(
+                'index.html',
+                insight="❌ Sample size is required for U Chart.",
+                system_status="error",
+                selected_chart=chart_type
+            )
         sample_size = int(sample_size_input)
 
         u_values = defects / sample_size
