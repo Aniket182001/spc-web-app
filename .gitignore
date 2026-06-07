@@ -4,5 +4,14 @@ uploads/
 .env
 instance/
 *.db
-static/*.png
-static/*.pdf
+
+.antigravitycli/
+.tmp_doc_review/
+
+static/charts/
+static/reports/
+
+static/latest_chart.png
+static/spc_report.pdf
+static/capability_chart.png
+static/capability_report.pdf
