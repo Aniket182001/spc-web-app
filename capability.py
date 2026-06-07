@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request
-from flask_login import login_required
+from flask_login import login_required, current_user
 import pandas as pd
 import numpy as np
 from scipy.stats import norm
@@ -14,9 +14,10 @@ capability_bp = Blueprint('capability', __name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Base directories
+UPLOAD_BASE = os.path.join(BASE_DIR, 'uploads')
+CHARTS_BASE = os.path.join(BASE_DIR, 'static', 'charts')
+REPORTS_BASE = os.path.join(BASE_DIR, 'static', 'reports')
 
 
 # =========================
@@ -65,8 +66,11 @@ def capability_analysis():
     filename = secure_filename(file.filename)
 
     unique_name = str(int(time.time())) + "_" + filename
+    
+    user_upload_dir = os.path.join(UPLOAD_BASE, f"user_{current_user.id}")
+    os.makedirs(user_upload_dir, exist_ok=True)
 
-    filepath = os.path.join(UPLOAD_FOLDER, unique_name)
+    filepath = os.path.join(user_upload_dir, unique_name)
 
     file.save(filepath)
 
@@ -325,7 +329,10 @@ def capability_analysis():
     )
 
     graph_html = fig.to_html(full_html=False)
-    chart_image_path = "static/capability_chart.png"
+    user_charts_dir = os.path.join(CHARTS_BASE, f"user_{current_user.id}")
+    os.makedirs(user_charts_dir, exist_ok=True)
+    
+    chart_image_path = os.path.join(user_charts_dir, "capability_chart.png")
 
     try:
         fig.write_image(chart_image_path)
@@ -357,18 +364,24 @@ def capability_analysis():
     'dpmo': round(dpmo, 2)
 }
     
-    pdf_path = "static/capability_report.pdf"
+    user_reports_dir = os.path.join(REPORTS_BASE, f"user_{current_user.id}")
+    os.makedirs(user_reports_dir, exist_ok=True)
+    
+    pdf_path = os.path.join(user_reports_dir, "capability_report.pdf")
 
     generate_capability_pdf(
         results,
         chart_image_path,
         pdf_path
     )
+    
+    report_url = f"/static/reports/user_{current_user.id}/capability_report.pdf"
 
     return render_template(
         'capability.html',
         results=results,
         insight=insight,
         graph=graph_html,
-        system_status="processing"
+        system_status="processing",
+        report_url=report_url
     )

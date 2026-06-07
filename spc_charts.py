@@ -1,9 +1,11 @@
 from flask import (
     Blueprint,
     render_template,
-    request
+    request,
+    session,
+    send_from_directory
 )
-from flask_login import login_required
+from flask_login import login_required, current_user
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
@@ -32,13 +34,10 @@ spc_bp = Blueprint('spc', __name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
-
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-LAST_CHART_TITLE = ""
-LAST_CHART_IMAGE = ""
-LAST_INSIGHT = ""
+# Base directories
+UPLOAD_BASE = os.path.join(BASE_DIR, 'uploads')
+CHARTS_BASE = os.path.join(BASE_DIR, 'static', 'charts')
+REPORTS_BASE = os.path.join(BASE_DIR, 'static', 'reports')
 
 # =========================================================
 # WESTERN ELECTRIC RULE 2
@@ -176,8 +175,11 @@ def upload_file():
         str(int(time.time())) + "_" + filename
     )
 
+    user_upload_dir = os.path.join(UPLOAD_BASE, f"user_{current_user.id}")
+    os.makedirs(user_upload_dir, exist_ok=True)
+
     filepath = os.path.join(
-        UPLOAD_FOLDER,
+        user_upload_dir,
         unique_name
     )
 
@@ -1778,7 +1780,11 @@ def upload_file():
         ticklen=4
     )
 
-    chart_image_path = "static/latest_chart.png"
+    user_charts_dir = os.path.join(CHARTS_BASE, f"user_{current_user.id}")
+    os.makedirs(user_charts_dir, exist_ok=True)
+    
+    chart_image_path = os.path.join(user_charts_dir, "latest_chart.png")
+    
     try:
         fig.write_image(chart_image_path)
     except Exception:
@@ -1816,16 +1822,12 @@ def upload_file():
     )
 
     # =====================================================
-    # DELETE FILE
+    # STORE SESSION & DELETE FILE
     # =====================================================
 
-    global LAST_CHART_TITLE
-    global LAST_CHART_IMAGE
-    global LAST_INSIGHT
-
-    LAST_CHART_TITLE = chart_title
-    LAST_CHART_IMAGE = chart_image_path
-    LAST_INSIGHT = insight
+    session["last_chart_title"] = chart_title
+    session["last_chart_path"] = chart_image_path
+    session["last_insight"] = insight
 
     os.remove(filepath)
 
@@ -1847,18 +1849,23 @@ def upload_file():
 @login_required
 def download_spc_report():
 
-    output_pdf = "static/spc_report.pdf"
+    user_reports_dir = os.path.join(REPORTS_BASE, f"user_{current_user.id}")
+    os.makedirs(user_reports_dir, exist_ok=True)
+    
+    output_pdf = os.path.join(user_reports_dir, "spc_report.pdf")
 
     generate_spc_pdf(
-        LAST_CHART_TITLE,
-        LAST_INSIGHT,
-        LAST_CHART_IMAGE,
+        session.get("last_chart_title", "SPC Report"),
+        session.get("last_insight", ""),
+        session.get("last_chart_path", ""),
         output_pdf
     )
+    
+    report_url = f"/static/reports/user_{current_user.id}/spc_report.pdf"
 
     return render_template(
         "report_status.html",
-        report_url="/static/spc_report.pdf",
+        report_url=report_url,
         system_status="report",
         selected_chart=""
     )
