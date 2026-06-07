@@ -6,3 +6,11 @@ instance/
 *.db
 static/*.png
 static/*.pdf
+static/charts/
+static/reports/
+static/charts/
+static/reports/
+static/latest_chart.png
+static/spc_report.pdf
+static/capability_chart.png
+static/capability_report.pdf
