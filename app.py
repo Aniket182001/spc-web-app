@@ -1,4 +1,9 @@
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
+
 from flask import Flask, request, url_for
 from auth import auth_bp
 from chart_info import CHART_INFO, chart_info_bp
@@ -73,4 +78,5 @@ if __name__ == "__main__":
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         Timer(1, open_browser).start()
 
-    app.run(debug=True)
+    debug_mode = os.environ.get("FLASK_ENV", "development") == "development"
+    app.run(debug=debug_mode)
