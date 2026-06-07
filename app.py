@@ -1,6 +1,7 @@
 import os
-from flask import Flask
+from flask import Flask, request, url_for
 from auth import auth_bp
+from chart_info import CHART_INFO, chart_info_bp
 from extensions import db, login_manager
 from models import User
 from spc_charts import spc_bp
@@ -36,6 +37,31 @@ with app.app_context():
 app.register_blueprint(auth_bp)
 app.register_blueprint(spc_bp)
 app.register_blueprint(capability_bp)
+app.register_blueprint(chart_info_bp)
+
+
+@app.context_processor
+def inject_chart_information():
+    summaries = {
+        chart["dropdown_value"]: {
+            "description": chart["short_description"],
+            "url": url_for(
+                "chart_info.chart_info_detail",
+                chart_type=chart_slug,
+            ),
+        }
+        for chart_slug, chart in CHART_INFO.items()
+    }
+    selected_chart = request.form.get("chart", "xbar_r")
+
+    if selected_chart not in summaries:
+        selected_chart = "xbar_r"
+
+    return {
+        "chart_summaries": summaries,
+        "selected_chart": selected_chart,
+        "selected_chart_summary": summaries[selected_chart],
+    }
 
 if __name__ == '__main__':
 

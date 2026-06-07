@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chart.chart_type }} - QPulse Analytics{% endblock %}
+
+{% block head_extra %}
+<style>
+  .chart-info-shell {
+    max-width: 1040px;
+    margin: 0 auto;
+    padding: 38px 28px 56px;
+  }
+
+  .chart-info-heading {
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .chart-info-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .chart-info-heading h2 {
+    margin-top: 8px;
+    color: var(--text-brand);
+    font-size: 2rem;
+    line-height: 1.2;
+  }
+
+  .chart-info-description {
+    max-width: 760px;
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.7;
+  }
+
+  .chart-info-card {
+    width: 100%;
+  }
+
+  .chart-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .chart-info-field {
+    min-width: 0;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .chart-info-field:nth-child(odd) {
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .chart-info-field:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+
+  .chart-info-field-label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .chart-info-field-value {
+    color: var(--text-primary);
+    font-size: 0.88rem;
+    line-height: 1.55;
+  }
+
+  .chart-info-section {
+    padding: 22px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .chart-info-section:last-child {
+    border-bottom: 0;
+  }
+
+  .chart-info-section h3 {
+    margin-bottom: 12px;
+    color: var(--text-primary);
+    font-size: 0.92rem;
+  }
+
+  .chart-info-list {
+    display: grid;
+    gap: 9px;
+    padding-left: 20px;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+
+  .chart-info-actions {
+    margin-top: 22px;
+  }
+
+  .chart-info-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: var(--text-accent);
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .chart-info-back:hover {
+    color: var(--accent-hover);
+  }
+
+  @media (max-width: 700px) {
+    .chart-info-shell {
+      padding: 28px 16px 44px;
+    }
+
+    .chart-info-heading h2 {
+      font-size: 1.6rem;
+    }
+
+    .chart-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .chart-info-field:nth-child(odd) {
+      border-right: 0;
+    }
+
+    .chart-info-field:last-child:nth-child(odd) {
+      grid-column: auto;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="chart-info-shell">
+  <div class="chart-info-heading">
+    <div class="chart-info-eyebrow">Control Chart Reference</div>
+    <h2>{{ chart.chart_type }}</h2>
+    <p class="chart-info-description">{{ chart.description }}</p>
+  </div>
+
+  <article class="card chart-info-card">
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 13V3M2 13h12" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M4 10l3-3 2 2 4-5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="card-title">Chart Information</div>
+        <div class="card-subtitle">Selection and interpretation guidance</div>
+      </div>
+    </div>
+
+    <div class="chart-info-grid">
+      <div class="chart-info-field">
+        <span class="chart-info-field-label">Chart Type</span>
+        <div class="chart-info-field-value">{{ chart.chart_type }}</div>
+      </div>
+      <div class="chart-info-field">
+        <span class="chart-info-field-label">Data Type</span>
+        <div class="chart-info-field-value">{{ chart.data_type }}</div>
+      </div>
+      {% if chart.data_volume %}
+      <div class="chart-info-field">
+        <span class="chart-info-field-label">Volume of Data</span>
+        <div class="chart-info-field-value">{{ chart.data_volume }}</div>
+      </div>
+      {% endif %}
+      {% if chart.subgroup_size %}
+      <div class="chart-info-field">
+        <span class="chart-info-field-label">Subgroup Size</span>
+        <div class="chart-info-field-value">{{ chart.subgroup_size }}</div>
+      </div>
+      {% endif %}
+      <div class="chart-info-field">
+        <span class="chart-info-field-label">What the Chart Monitors</span>
+        <div class="chart-info-field-value">{{ chart.monitors }}</div>
+      </div>
+    </div>
+
+    <section class="chart-info-section">
+      <h3>Interpretation Rules</h3>
+      <ol class="chart-info-list">
+        {% for rule in chart.interpretation_rules %}
+        <li>{{ rule }}</li>
+        {% endfor %}
+      </ol>
+    </section>
+
+    {% if chart.practical_notes %}
+    <section class="chart-info-section">
+      <h3>Practical Notes</h3>
+      <ul class="chart-info-list">
+        {% for note in chart.practical_notes %}
+        <li>{{ note }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </article>
+
+  <div class="chart-info-actions">
+    <a class="chart-info-back" href="{{ url_for('spc.home') }}">
+      &larr; Return to Control Chart Analysis
+    </a>
+  </div>
+</section>
+{% endblock %}

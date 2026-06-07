@@ -93,7 +93,7 @@ def home():
         graph=None,
         insight=None,
         warning=None,
-        system_status="ready"
+        system_status="ready",
     )
 
 
@@ -114,7 +114,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ No file part in request",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     file = request.files['file']
@@ -124,7 +125,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ Please select a file.",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     if not allowed_file(file.filename):
@@ -135,7 +137,8 @@ def upload_file():
                 "❌ Invalid file type. "
                 "Please upload CSV, TXT, XLSX, or XLS file."
             ),
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     # =====================================================
@@ -187,7 +190,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ Please close the Excel file before uploading",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     # =====================================================
@@ -226,7 +230,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ Unsupported file format",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     # =====================================================
@@ -245,7 +250,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ No valid numeric data found",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     warning = None
@@ -262,7 +268,8 @@ def upload_file():
             return render_template(
                 'index.html',
                 insight="❌ Not enough data for subgrouping",
-                system_status="error"
+                system_status="error",
+                selected_chart=chart_type
             )
 
         total_points = len(data)
@@ -304,7 +311,8 @@ def upload_file():
             return render_template(
                 'index.html',
                 insight="❌ Unsupported subgroup size for Xbar-R",
-                system_status="error"
+                system_status="error",
+                selected_chart=chart_type
             )
 
         # -------------------------------------------------
@@ -567,7 +575,8 @@ def upload_file():
             return render_template(
                 'index.html',
                 insight="❌ Not enough data for subgrouping",
-                system_status="error"
+                system_status="error",
+                selected_chart=chart_type
             )
 
         total_points = len(data)
@@ -609,7 +618,8 @@ def upload_file():
             return render_template(
                 'index.html',
                 insight="❌ Unsupported subgroup size for Xbar-S",
-                system_status="error"
+                system_status="error",
+                selected_chart=chart_type
             )
 
         # -------------------------------------------------
@@ -1336,7 +1346,8 @@ def upload_file():
             return render_template(
                 'index.html',
                 insight="❌ IMR Chart requires at least 2 observations",
-                system_status="error"
+                system_status="error",
+                selected_chart=chart_type
             )
 
         # -------------------------------------------------
@@ -1593,7 +1604,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ Invalid chart type selected",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     # =====================================================
@@ -1768,7 +1780,8 @@ def upload_file():
         return render_template(
             'index.html',
             insight="❌ Chart generation failed. Please check the server chart export setup.",
-            system_status="error"
+            system_status="error",
+            selected_chart=chart_type
         )
 
     graph_html = fig.to_html(
@@ -1814,7 +1827,8 @@ def upload_file():
         graph=graph_html,
         insight=insight,
         warning=warning,
-        system_status="processing"
+        system_status="processing",
+        selected_chart=chart_type
     )
 
     # =========================================================
@@ -1837,5 +1851,6 @@ def download_spc_report():
     return render_template(
         "report_status.html",
         report_url="/static/spc_report.pdf",
-        system_status="report"
+        system_status="report",
+        selected_chart=""
     )

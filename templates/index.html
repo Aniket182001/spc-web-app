@@ -569,6 +569,21 @@
       line-height: 1.6;
     }
 
+    .hero-know-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 7px;
+      color: var(--text-accent);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .hero-know-more:hover {
+      color: var(--accent-hover);
+    }
+
     .chart-type-pills {
       display: flex;
       flex-wrap: wrap;
@@ -1258,7 +1273,10 @@
       <div class="page-hero">
         <div class="page-hero-left">
           <h2>Control Chart <span>Analysis</span></h2>
-          <p>Upload your process data, configure chart parameters, and generate statistically validated control charts with automated rule detection.</p>
+          <p id="chart-description" aria-live="polite">{{ selected_chart_summary.description }}</p>
+          <a id="chart-know-more" class="hero-know-more" href="{{ selected_chart_summary.url }}">
+            Know More &rarr;
+          </a>
         </div>
         <div class="chart-type-pills" aria-label="Supported chart types">
           <span class="pill" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
@@ -1325,14 +1343,43 @@
                   <label for="chart-select">Chart Type</label>
                   <div class="select-wrapper">
                     <select name="chart" id="chart-select">
-                      <option value="xbar_r">Xbar-R Chart</option>
-                      <option value="xbar_s">Xbar-S Chart</option>
-                      <option value="p_chart">P Chart</option>
-                      <option value="np_chart">NP Chart</option>
-                      <option value="c_chart">C Chart</option>
-                      <option value="u_chart">U Chart</option>
-                      <option value="imr_chart">IMR Chart</option>
-                    </select>
+
+                      <option value="xbar_r"
+                          {% if selected_chart|default('xbar_r') == "xbar_r" %}selected{% endif %}>
+                          Xbar-R Chart
+                      </option>
+
+                      <option value="xbar_s"
+                          {% if selected_chart == "xbar_s" %}selected{% endif %}>
+                          Xbar-S Chart
+                      </option>
+
+                      <option value="p_chart"
+                          {% if selected_chart == "p_chart" %}selected{% endif %}>
+                          P Chart
+                      </option>
+
+                      <option value="np_chart"
+                          {% if selected_chart == "np_chart" %}selected{% endif %}>
+                          NP Chart
+                      </option>
+
+                      <option value="c_chart"
+                          {% if selected_chart == "c_chart" %}selected{% endif %}>
+                          C Chart
+                      </option>
+
+                      <option value="u_chart"
+                          {% if selected_chart == "u_chart" %}selected{% endif %}>
+                          U Chart
+                      </option>
+
+                      <option value="imr_chart"
+                          {% if selected_chart == "imr_chart" %}selected{% endif %}>
+                          IMR Chart
+                      </option>
+
+                  </select>
                   </div>
                 </div>
 
@@ -1516,6 +1563,20 @@
     const subgroupContainer   = document.getElementById("subgroup-container");
     const sampleSizeContainer = document.getElementById("sample-size-container");
     const specLimitContainer  = document.getElementById("spec-limit-container");
+    const chartDescription    = document.getElementById("chart-description");
+    const chartKnowMore       = document.getElementById("chart-know-more");
+    const chartSummaries      = {{ chart_summaries|tojson }};
+
+    function updateChartInformation(chartType) {
+      const chartInfo = chartSummaries[chartType];
+
+      if (!chartInfo) {
+        return;
+      }
+
+      chartDescription.textContent = chartInfo.description;
+      chartKnowMore.href = chartInfo.url;
+    }
 
     function toggleFields() {
       const chartType = chartSelect.value;
@@ -1551,11 +1612,13 @@
     chartSelect.addEventListener("change", () => {
       toggleFields();
       syncActivePill(chartSelect.value);
+      updateChartInformation(chartSelect.value);
     });
 
     // Run both on page load so the default dropdown value is reflected immediately
     toggleFields();
     syncActivePill(chartSelect.value);
+    updateChartInformation(chartSelect.value);
 
     /* ---- FILE NAME DISPLAY ---- */
     const fileInput      = document.getElementById("file-input");
