@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 # Load environment variables from .env file if it exists
 load_dotenv()
 
+
 from flask import Flask, request, url_for
 from auth import auth_bp
 from chart_info import CHART_INFO, chart_info_bp
