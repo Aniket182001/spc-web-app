@@ -81,12 +81,12 @@ def check_rule2(points, center_line):
 
 
 # =========================================================
-# HOME ROUTE
+# DASHBOARD ROUTE
 # =========================================================
 
-@spc_bp.route("/")
+@spc_bp.route("/dashboard")
 @login_required
-def home():
+def dashboard():
     return render_template(
         "index.html",
         graph=None,

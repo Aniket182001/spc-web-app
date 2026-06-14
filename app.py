@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from flask import Flask, request, url_for
+from flask import Flask, render_template, request, url_for
 from auth import auth_bp
 from chart_info import CHART_INFO, chart_info_bp
 from extensions import db, login_manager
@@ -60,6 +60,12 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(spc_bp)
 app.register_blueprint(capability_bp)
 app.register_blueprint(chart_info_bp)
+
+
+# ─── Public homepage ───────────────────────────────────
+@app.route("/")
+def home():
+    return render_template("home.html")
 
 
 @app.context_processor

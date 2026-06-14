@@ -1,0 +1,1499 @@
+{% extends "base.html" %}
+
+{% block title %}QPulse Analytics — Statistical Process Control Platform{% endblock %}
+
+{% block head_extra %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+  /* ── HOMEPAGE GLOBAL ─────────────────────────────── */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--bg-base) !important;
+    color: var(--text-primary) !important;
+  }
+
+  h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+    color: inherit;
+  }
+
+  .home-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 36px;
+  }
+
+  .home-section-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-accent);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .home-section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-brand);
+    letter-spacing: -0.02em;
+    line-height: 1.22;
+  }
+
+  .home-section-subtitle {
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.92rem;
+    line-height: 1.65;
+    max-width: 580px;
+  }
+
+  /* ── HERO ─────────────────────────────────────────── */
+  .hero {
+    position: relative;
+    padding: 100px 36px 80px;
+    text-align: center;
+    animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+    overflow: hidden;
+  }
+
+  /* Gradient background */
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(37,99,235,0.10) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 20% 30%, rgba(96,165,250,0.06) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  [data-theme="dark"] .hero::before {
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(37,99,235,0.14) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 40% at 80% 20%, rgba(59,130,246,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 40% at 20% 30%, rgba(96,165,250,0.08) 0%, transparent 60%);
+  }
+
+  /* Floating decorative orbs */
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 420px;
+    height: 420px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.07) 0%, transparent 70%);
+    top: -120px;
+    right: -100px;
+    pointer-events: none;
+    z-index: 0;
+    animation: float-orb 8s ease-in-out infinite;
+  }
+
+  @keyframes float-orb {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    50% { transform: translate(-15px, 20px) scale(1.05); }
+  }
+
+  .hero > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 16px;
+    border-radius: 999px;
+    background: var(--status-bg);
+    border: 1px solid var(--status-border);
+    color: var(--status-color);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .hero-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--status-color);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+
+  .hero h1 {
+    font-size: clamp(2.2rem, 5.5vw, 3.4rem);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+    color: var(--text-brand);
+    max-width: 780px;
+    margin: 0 auto;
+  }
+
+  .hero h1 .hero-accent {
+    background: linear-gradient(135deg, #1d4ed8, var(--accent-primary), #3b82f6, #60a5fa);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .hero-sub {
+    margin: 22px auto 0;
+    max-width: 620px;
+    color: var(--text-secondary);
+    font-size: 1.08rem;
+    line-height: 1.7;
+  }
+
+  .hero-actions {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .btn-hero-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 32px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--accent-primary), #1d4ed8);
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.94rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow:
+      0 1px 2px rgba(37,99,235,0.12),
+      0 4px 12px rgba(37,99,235,0.24),
+      0 8px 24px rgba(37,99,235,0.14);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .btn-hero-primary:hover {
+    background: linear-gradient(135deg, var(--accent-hover), #1e3a8a);
+    color: #ffffff;
+    transform: translateY(-3px);
+    box-shadow:
+      0 2px 4px rgba(37,99,235,0.15),
+      0 8px 20px rgba(37,99,235,0.30),
+      0 14px 36px rgba(37,99,235,0.18);
+  }
+
+  .btn-hero-primary:active {
+    transform: translateY(-1px);
+    box-shadow:
+      0 1px 2px rgba(37,99,235,0.12),
+      0 4px 10px rgba(37,99,235,0.22);
+  }
+
+  .btn-hero-primary svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+  }
+
+  .btn-hero-primary:hover svg {
+    transform: translateX(3px);
+  }
+
+  .btn-hero-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 32px;
+    border: 1px solid var(--border-default);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.94rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow:
+      0 1px 3px rgba(15,23,42,0.04),
+      0 4px 12px rgba(15,23,42,0.06);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .btn-hero-secondary:hover {
+    border-color: var(--border-focus);
+    color: var(--text-accent);
+    transform: translateY(-3px);
+    box-shadow:
+      0 2px 4px rgba(37,99,235,0.08),
+      0 8px 20px rgba(37,99,235,0.10);
+  }
+
+  .btn-hero-secondary:active {
+    transform: translateY(-1px);
+  }
+
+  .btn-hero-secondary svg {
+    width: 16px;
+    height: 16px;
+    transition: transform 0.25s ease;
+  }
+
+  .btn-hero-secondary:hover svg {
+    transform: translateY(3px);
+  }
+
+  /* ── FEATURES ─────────────────────────────────────── */
+  .features {
+    padding: 72px 0 80px;
+  }
+
+  .features-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .features-header .home-section-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+
+  .feature-card {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 18px;
+    padding: 28px 24px;
+    box-shadow:
+      0 1px 3px rgba(15,23,42,0.04),
+      0 4px 16px rgba(15,23,42,0.06);
+    animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-theme="dark"] .feature-card {
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.2),
+      0 4px 16px rgba(0,0,0,0.25);
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent-primary), #3b82f6, #60a5fa);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .feature-card:hover::before {
+    opacity: 1;
+  }
+
+  .feature-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow:
+      0 4px 8px rgba(37,99,235,0.06),
+      0 12px 32px rgba(37,99,235,0.12),
+      0 20px 48px rgba(37,99,235,0.06);
+  }
+
+  [data-theme="dark"] .feature-card:hover {
+    box-shadow:
+      0 4px 8px rgba(37,99,235,0.10),
+      0 12px 32px rgba(37,99,235,0.18),
+      0 20px 48px rgba(37,99,235,0.08);
+  }
+
+  .feature-card:nth-child(1) { animation-delay: 0.04s; }
+  .feature-card:nth-child(2) { animation-delay: 0.08s; }
+  .feature-card:nth-child(3) { animation-delay: 0.12s; }
+  .feature-card:nth-child(4) { animation-delay: 0.16s; }
+  .feature-card:nth-child(5) { animation-delay: 0.20s; }
+  .feature-card:nth-child(6) { animation-delay: 0.24s; }
+
+  .feature-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 18px;
+    flex-shrink: 0;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .feature-card:hover .feature-icon {
+    background: linear-gradient(135deg, var(--accent-primary), #3b82f6);
+    border-color: transparent;
+    box-shadow: 0 2px 10px rgba(37,99,235,0.3);
+  }
+
+  .feature-icon svg {
+    width: 20px;
+    height: 20px;
+    color: var(--text-accent);
+    stroke: var(--text-accent);
+    transition: all 0.35s ease;
+  }
+
+  .feature-card:hover .feature-icon svg {
+    color: #ffffff;
+    stroke: #ffffff;
+  }
+
+  .feature-card h3 {
+    font-size: 0.94rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  .feature-card p {
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    line-height: 1.6;
+  }
+
+  /* ── SUPPORTED CHARTS ─────────────────────────────── */
+  .charts-section {
+    padding: 72px 0 80px;
+  }
+
+  .charts-section-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .charts-section-header .home-section-subtitle {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .charts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin: 0 auto;
+  }
+
+  .chart-card {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow:
+      0 1px 3px rgba(15,23,42,0.04),
+      0 4px 16px rgba(15,23,42,0.06);
+    animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  [data-theme="dark"] .chart-card {
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.2),
+      0 4px 16px rgba(0,0,0,0.25);
+  }
+
+  .chart-card:nth-child(1) { animation-delay: 0.04s; }
+  .chart-card:nth-child(2) { animation-delay: 0.08s; }
+
+  .chart-card:hover {
+    border-color: var(--border-focus);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow:
+      0 4px 8px rgba(37,99,235,0.06),
+      0 12px 32px rgba(37,99,235,0.12),
+      0 20px 48px rgba(37,99,235,0.06);
+  }
+
+  [data-theme="dark"] .chart-card:hover {
+    box-shadow:
+      0 4px 8px rgba(37,99,235,0.10),
+      0 12px 32px rgba(37,99,235,0.18),
+      0 20px 48px rgba(37,99,235,0.08);
+  }
+
+  .chart-card-header {
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-elevated);
+  }
+
+  .chart-card-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow:
+      0 0 0 1px rgba(59,130,246,0.3),
+      0 2px 8px rgba(37,99,235,0.25);
+    transition: all 0.35s ease;
+  }
+
+  .chart-card:hover .chart-card-icon {
+    box-shadow:
+      0 0 0 1px rgba(59,130,246,0.4),
+      0 4px 14px rgba(37,99,235,0.35);
+    transform: scale(1.05);
+  }
+
+  .chart-card-icon svg {
+    width: 17px;
+    height: 17px;
+    color: #ffffff;
+    stroke: #ffffff;
+  }
+
+  .chart-card-header h3 {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+  }
+
+  .chart-card-body {
+    padding: 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chart-card-body p {
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.65;
+    flex: 1;
+  }
+
+  .btn-know-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 18px;
+    padding: 9px 20px;
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    background: var(--bg-elevated);
+    color: var(--text-accent);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    align-self: flex-start;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .btn-know-more:hover {
+    border-color: var(--border-focus);
+    background: var(--bg-surface);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37,99,235,0.10);
+  }
+
+  .btn-know-more:active {
+    transform: translateY(0);
+  }
+
+  .btn-know-more svg {
+    width: 14px;
+    height: 14px;
+    transition: transform 0.25s ease;
+  }
+
+  .btn-know-more:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* ── CHART MODALS ────────────────────────────────── */
+  .modal-backdrop.show {
+    opacity: 0.55;
+  }
+
+  .chart-modal .modal-content {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 20px;
+    box-shadow:
+      0 4px 16px rgba(15,23,42,0.08),
+      0 16px 48px rgba(15,23,42,0.12),
+      0 24px 64px rgba(15,23,42,0.06);
+    overflow: hidden;
+    color: var(--text-primary);
+  }
+
+  [data-theme="dark"] .chart-modal .modal-content {
+    box-shadow:
+      0 4px 16px rgba(0,0,0,0.3),
+      0 16px 48px rgba(0,0,0,0.4),
+      0 24px 64px rgba(0,0,0,0.2);
+  }
+
+  .chart-modal .modal-header {
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    gap: 14px;
+  }
+
+  .chart-modal .modal-header .modal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 1px rgba(59,130,246,0.3), 0 2px 8px rgba(37,99,235,0.25);
+  }
+
+  .chart-modal .modal-header .modal-icon svg {
+    width: 18px;
+    height: 18px;
+    color: #ffffff;
+    stroke: #ffffff;
+  }
+
+  .chart-modal .modal-header .modal-title {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--text-brand);
+    letter-spacing: -0.01em;
+  }
+
+  .chart-modal .modal-header .btn-close {
+    filter: var(--text-primary);
+    opacity: 0.5;
+    padding: 10px;
+    transition: opacity 0.2s ease;
+  }
+
+  [data-theme="dark"] .chart-modal .modal-header .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+  }
+
+  .chart-modal .modal-header .btn-close:hover {
+    opacity: 0.85;
+  }
+
+  .chart-modal .modal-body {
+    padding: 0;
+  }
+
+  .modal-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .modal-info-field {
+    padding: 20px 26px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .modal-info-field:nth-child(odd) {
+    border-right: 1px solid var(--border-subtle);
+  }
+
+  .modal-info-field.full-width {
+    grid-column: 1 / -1;
+    border-right: none;
+  }
+
+  .modal-info-label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+  }
+
+  .modal-info-value {
+    color: var(--text-primary);
+    font-size: 0.86rem;
+    line-height: 1.65;
+  }
+
+  .modal-info-value ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-info-value ul li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    color: var(--text-secondary);
+    font-size: 0.84rem;
+    line-height: 1.55;
+  }
+
+  .modal-info-value ul li::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-primary);
+    flex-shrink: 0;
+    margin-top: 7px;
+  }
+
+  .modal-info-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .modal-info-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 10px;
+    background: var(--org-tag-bg);
+    border: 1px solid var(--org-tag-border);
+    color: var(--org-tag-color);
+    font-size: 0.76rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: all 0.25s ease;
+  }
+
+  .modal-info-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(37,99,235,0.08);
+  }
+
+  .modal-info-tag svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+  }
+
+  .chart-modal .modal-footer {
+    padding: 18px 26px;
+    border-top: 1px solid var(--border-subtle);
+    background: var(--bg-elevated);
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+  }
+
+  .btn-modal-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border: 1px solid var(--border-default);
+    border-radius: 10px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s ease;
+  }
+
+  .btn-modal-secondary:hover {
+    border-color: var(--border-focus);
+    color: var(--text-accent);
+    transform: translateY(-1px);
+  }
+
+  .btn-modal-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-primary), #1d4ed8);
+    color: #ffffff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(37,99,235,0.24);
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .btn-modal-primary:hover {
+    background: linear-gradient(135deg, var(--accent-hover), #1e3a8a);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(37,99,235,0.35);
+  }
+
+  .btn-modal-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-modal-primary svg,
+  .btn-modal-secondary svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .btn-modal-primary svg {
+    transition: transform 0.25s ease;
+  }
+
+  .btn-modal-primary:hover svg {
+    transform: translateX(2px);
+  }
+
+  @media (max-width: 600px) {
+    .modal-info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .modal-info-field:nth-child(odd) {
+      border-right: none;
+    }
+
+    .chart-modal .modal-header {
+      padding: 16px 20px;
+    }
+
+    .modal-info-field {
+      padding: 16px 20px;
+    }
+
+    .chart-modal .modal-footer {
+      padding: 16px 20px;
+    }
+  }
+
+  /* ── CTA ──────────────────────────────────────────── */
+  .cta-section {
+    padding: 72px 0 88px;
+  }
+
+  .cta-card {
+    background-color: var(--bg-surface) !important;
+    border: 1px solid var(--border-subtle) !important;
+    border-radius: 20px;
+    box-shadow:
+      0 1px 3px rgba(15,23,42,0.04),
+      0 4px 16px rgba(15,23,42,0.06),
+      0 12px 36px rgba(15,23,42,0.05);
+    text-align: center;
+    padding: 56px 40px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  [data-theme="dark"] .cta-card {
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.2),
+      0 4px 16px rgba(0,0,0,0.25),
+      0 12px 36px rgba(0,0,0,0.15);
+  }
+
+  .cta-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #1d4ed8, var(--accent-primary), #3b82f6, #60a5fa);
+    background-size: 200% 100%;
+    animation: gradient-shift 4s ease infinite;
+  }
+
+  /* Decorative background glow */
+  .cta-card::after {
+    content: '';
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 340px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37,99,235,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  [data-theme="dark"] .cta-card::after {
+    background: radial-gradient(circle, rgba(37,99,235,0.10) 0%, transparent 70%);
+  }
+
+  .cta-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-card h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-brand);
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+  }
+
+  .cta-card p {
+    color: var(--text-secondary);
+    font-size: 0.94rem;
+    line-height: 1.65;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  .cta-card .btn-hero-primary {
+    margin-top: 32px;
+  }
+
+  /* ── DIVIDER ──────────────────────────────────────── */
+  .home-divider {
+    border: none;
+    border-top: 1px solid var(--border-subtle);
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────── */
+  @media (max-width: 900px) {
+    .hero {
+      padding: 72px 24px 60px;
+    }
+
+    .features-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .charts-grid {
+      grid-template-columns: repeat(2, 1fr);
+      max-width: 880px;
+      margin: 0 auto;
+    }
+
+    .features,
+    .charts-section {
+      padding: 56px 0 64px;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .hero {
+      padding: 52px 20px 44px;
+    }
+
+    .hero::after {
+      width: 240px;
+      height: 240px;
+      top: -60px;
+      right: -60px;
+    }
+
+    .hero h1 {
+      font-size: 1.8rem;
+    }
+
+    .hero-sub {
+      font-size: 0.94rem;
+    }
+
+    .hero-actions {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn-hero-primary,
+    .btn-hero-secondary {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .home-section {
+      padding: 0 20px;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    .feature-card {
+      border-radius: 16px;
+      padding: 24px 22px;
+    }
+
+    .chart-card {
+      border-radius: 16px;
+    }
+
+    .features,
+    .charts-section,
+    .cta-section {
+      padding: 48px 0 56px;
+    }
+
+    .charts-grid {
+      grid-template-columns: 1fr;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .cta-card {
+      padding: 40px 24px;
+      border-radius: 18px;
+    }
+
+    .cta-card h2 {
+      font-size: 1.35rem;
+    }
+  }
+
+  @media (max-width: 380px) {
+    .hero {
+      padding: 44px 16px 36px;
+    }
+
+    .hero h1 {
+      font-size: 1.55rem;
+    }
+
+    .home-section {
+      padding: 0 16px;
+    }
+
+    .feature-card {
+      padding: 20px 18px;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ── HERO ──────────────────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="hero-badge-dot"></span>
+    SPC Platform
+  </div>
+
+  <h1>
+    Statistical Process Control
+    <br>
+    <span class="hero-accent">Made Simple</span>
+  </h1>
+
+  <p class="hero-sub">
+    Generate professional control charts, monitor process stability,
+    and identify process variation with ease.
+  </p>
+
+  <div class="hero-actions">
+    <a href="{% if current_user.is_authenticated %}{{ url_for('spc.dashboard') }}{% else %}{{ url_for('auth.login') }}{% endif %}" class="btn-hero-primary" id="hero-get-started">
+      Get Started
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="8" x2="13" y2="8"/>
+        <polyline points="9 4 13 8 9 12"/>
+      </svg>
+    </a>
+    <a href="#supported-charts" class="btn-hero-secondary" id="hero-learn-more">
+      Learn More
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="8" y1="3" x2="8" y2="13"/>
+        <polyline points="4 9 8 13 12 9"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<hr class="home-divider">
+
+<!-- ── FEATURES ──────────────────────────────────────── -->
+<section class="features home-section" id="features">
+  <div class="features-header">
+    <div class="home-section-eyebrow">Platform Features</div>
+    <h2 class="home-section-title">Everything You Need for SPC</h2>
+    <p class="home-section-subtitle">
+      A comprehensive toolkit for statistical process control — from data upload to actionable insights.
+    </p>
+  </div>
+
+  <div class="features-grid">
+    <!-- Card 1: Excel Upload -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7l-5-5z"/>
+          <polyline points="12 2 12 7 17 7"/>
+          <line x1="7" y1="11" x2="13" y2="11"/>
+          <line x1="7" y1="14" x2="13" y2="14"/>
+        </svg>
+      </div>
+      <h3>Excel Upload</h3>
+      <p>Upload .xlsx files directly.</p>
+    </div>
+
+    <!-- Card 2: Automatic Calculations -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="14" height="14" rx="2"/>
+          <line x1="7" y1="7" x2="7" y2="13"/>
+          <line x1="10" y1="9" x2="10" y2="13"/>
+          <line x1="13" y1="5" x2="13" y2="13"/>
+        </svg>
+      </div>
+      <h3>Automatic Calculations</h3>
+      <p>Control limits calculated automatically.</p>
+    </div>
+
+    <!-- Card 3: Interactive Charts -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 14 7 8 11 11 17 4"/>
+          <line x1="14" y1="4" x2="17" y2="4"/>
+          <line x1="17" y1="4" x2="17" y2="7"/>
+        </svg>
+      </div>
+      <h3>Interactive Charts</h3>
+      <p>Plotly-based visualizations.</p>
+    </div>
+
+    <!-- Card 4: Process Insights -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="10" r="7"/>
+          <line x1="10" y1="6" x2="10" y2="10"/>
+          <line x1="10" y1="10" x2="13" y2="12"/>
+        </svg>
+      </div>
+      <h3>Process Insights</h3>
+      <p>Understand process variation and stability.</p>
+    </div>
+
+    <!-- Card 5: Multiple Chart Types -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="7" height="7" rx="1.5"/>
+          <rect x="11" y="2" width="7" height="7" rx="1.5"/>
+          <rect x="2" y="11" width="7" height="7" rx="1.5"/>
+          <rect x="11" y="11" width="7" height="7" rx="1.5"/>
+        </svg>
+      </div>
+      <h3>Multiple Chart Types</h3>
+      <p>Support for Xbar-R and Xbar-S charts.</p>
+    </div>
+
+    <!-- Card 6: Easy to Use -->
+    <div class="feature-card">
+      <div class="feature-icon">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="14 3 14 8 17 8"/>
+          <path d="M4 17V6a3 3 0 0 1 3-3h5l5 5v9a2 2 0 0 1-2 2H7"/>
+          <polyline points="4 13 7 16 12 11"/>
+        </svg>
+      </div>
+      <h3>Easy to Use</h3>
+      <p>Simple workflow with minimal setup.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="home-divider">
+
+<!-- ── SUPPORTED CHARTS ─────────────────────────────── -->
+<section class="charts-section home-section" id="supported-charts">
+  <div class="charts-section-header">
+    <div class="home-section-eyebrow">Supported Charts</div>
+    <h2 class="home-section-title">Control Chart Types</h2>
+    <p class="home-section-subtitle">
+      Choose the right control chart based on your subgroup size and process characteristics.
+    </p>
+  </div>
+
+  <div class="charts-grid">
+    <!-- 1. Xbar-R Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 10l3-3 2 2 4-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Xbar-R Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Average and Range chart for subgroup size up to 10.</p>
+        <button type="button" class="btn-know-more" data-bs-toggle="modal" data-bs-target="#modalXbarR">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Xbar-S Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 8c1-3 2.5 2 4 0s2.5-3 4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Xbar-S Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Average and Standard Deviation chart for larger subgroup sizes.</p>
+        <button type="button" class="btn-know-more" data-bs-toggle="modal" data-bs-target="#modalXbarS">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 3. I-MR Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="5" cy="10" r="1.5" fill="currentColor"/>
+            <circle cx="9" cy="7" r="1.5" fill="currentColor"/>
+            <circle cx="13" cy="5" r="1.5" fill="currentColor"/>
+          </svg>
+        </div>
+        <h3>I-MR Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Individual and Moving Range chart for one observation at a time.</p>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='imr') }}" class="btn-know-more" style="text-decoration:none;">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 4. p Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 10l3-5 3 4 3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>p Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Monitors proportion of defective units.</p>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='p_chart') }}" class="btn-know-more" style="text-decoration:none;">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 5. np Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 8h2m2-2h2m2 4h2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>np Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Tracks number of defectives when sample size is constant.</p>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='np_chart') }}" class="btn-know-more" style="text-decoration:none;">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 6. c Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM11 11a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>c Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Monitors count of defects when opportunity is constant.</p>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='c_chart') }}" class="btn-know-more" style="text-decoration:none;">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- 7. u Chart -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 5v3a2 2 0 0 0 4 0V5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>u Chart</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Tracks defects per unit when sample size varies.</p>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='u_chart') }}" class="btn-know-more" style="text-decoration:none;">
+          Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── XBAR-R MODAL ──────────────────────────────────── -->
+<div class="modal fade chart-modal" id="modalXbarR" tabindex="-1" aria-labelledby="modalXbarRLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 10l3-3 2 2 4-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h5 class="modal-title" id="modalXbarRLabel">Xbar-R Chart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div class="modal-info-field full-width">
+            <span class="modal-info-label">Description</span>
+            <div class="modal-info-value">
+              Used for variable data with subgroup sizes from 2 to 10.
+            </div>
+          </div>
+          <div class="modal-info-field">
+            <span class="modal-info-label">What It Monitors</span>
+            <div class="modal-info-value">
+              <ul>
+                <li>Process average</li>
+                <li>Process variation using ranges</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-info-field">
+            <span class="modal-info-label">When to Use</span>
+            <div class="modal-info-value">
+              <ul>
+                <li>Measurements collected in small subgroups</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-info-field full-width">
+            <span class="modal-info-label">Typical Applications</span>
+            <div class="modal-info-value">
+              <div class="modal-info-tags">
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1.5"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg>
+                  Manufacturing
+                </span>
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="10" rx="2"/><line x1="6" y1="6" x2="6" y2="10"/><line x1="8" y1="8" x2="8" y2="10"/><line x1="10" y1="5" x2="10" y2="10"/></svg>
+                  Batch Production
+                </span>
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 2"/></svg>
+                  Quality Inspection
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" data-bs-dismiss="modal">Close</button>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='xbar_r') }}" class="btn-modal-primary">
+          Full Details
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="8" x2="13" y2="8"/>
+            <polyline points="9 4 13 8 9 12"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── XBAR-S MODAL ──────────────────────────────────── -->
+<div class="modal fade chart-modal" id="modalXbarS" tabindex="-1" aria-labelledby="modalXbarSLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13V3M2 13h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M4 8c1-3 2.5 2 4 0s2.5-3 4 0" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h5 class="modal-title" id="modalXbarSLabel">Xbar-S Chart</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-info-grid">
+          <div class="modal-info-field full-width">
+            <span class="modal-info-label">Description</span>
+            <div class="modal-info-value">
+              Used for variable data with subgroup sizes larger than 10.
+            </div>
+          </div>
+          <div class="modal-info-field">
+            <span class="modal-info-label">What It Monitors</span>
+            <div class="modal-info-value">
+              <ul>
+                <li>Process average</li>
+                <li>Process variation using standard deviation</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-info-field">
+            <span class="modal-info-label">When to Use</span>
+            <div class="modal-info-value">
+              <ul>
+                <li>Large subgroup sizes</li>
+              </ul>
+            </div>
+          </div>
+          <div class="modal-info-field full-width">
+            <span class="modal-info-label">Typical Applications</span>
+            <div class="modal-info-value">
+              <div class="modal-info-tags">
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="12" height="9" rx="1.5"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="10" x2="9" y2="10"/></svg>
+                  High-volume Manufacturing
+                </span>
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 12 7 6 10 9 14 3"/><line x1="11" y1="3" x2="14" y2="3"/><line x1="14" y1="3" x2="14" y2="6"/></svg>
+                  Process Monitoring
+                </span>
+                <span class="modal-info-tag">
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="5.5"/><line x1="8" y1="5" x2="8" y2="8"/><line x1="8" y1="8" x2="10.5" y2="10"/></svg>
+                  Statistical Analysis
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-modal-secondary" data-bs-dismiss="modal">Close</button>
+        <a href="{{ url_for('chart_info.chart_info_detail', chart_type='xbar_s') }}" class="btn-modal-primary">
+          Full Details
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="8" x2="13" y2="8"/>
+            <polyline points="9 4 13 8 9 12"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<hr class="home-divider">
+
+<!-- ── CTA ───────────────────────────────────────────── -->
+<section class="cta-section home-section" id="cta">
+  <div class="cta-card">
+    <h2>Ready to Start?</h2>
+    <p>Create an account and begin generating control charts.</p>
+    <a href="{% if current_user.is_authenticated %}{{ url_for('spc.dashboard') }}{% else %}{{ url_for('auth.login') }}{% endif %}" class="btn-hero-primary" id="cta-get-started">
+      Get Started
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="8" x2="13" y2="8"/>
+        <polyline points="9 4 13 8 9 12"/>
+      </svg>
+    </a>
+  </div>
+</section>
+
+<!-- Smooth scroll for anchor links (fallback for browsers without CSS scroll-behavior) -->
+<script>
+  document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+    anchor.addEventListener('click', function(e) {
+      var targetId = this.getAttribute('href').substring(1);
+      var targetEl = document.getElementById(targetId);
+      if (targetEl) {
+        e.preventDefault();
+        targetEl.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+</script>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

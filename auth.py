@@ -11,13 +11,13 @@ auth_bp = Blueprint("auth", __name__)
 def _safe_next_url(next_url):
     if next_url and next_url.startswith("/") and not next_url.startswith("//"):
         return next_url
-    return url_for("spc.home")
+    return url_for("spc.dashboard")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -36,7 +36,7 @@ def login():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -61,7 +61,7 @@ def register():
         db.session.commit()
 
         login_user(user)
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     return render_template("register.html")
 
