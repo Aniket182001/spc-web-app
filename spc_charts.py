@@ -1639,7 +1639,7 @@ def upload_file():
     is_single_chart = chart_type in SINGLE_CHART_TYPES
 
     # =====================================================
-    # COMMON LAYOUT  –  SPC Insight Pro theme
+    # COMMON LAYOUT  –  SPC Insights theme
     # =====================================================
 
     # ── Palette ──────────────────────────────────────
@@ -1721,7 +1721,7 @@ def upload_file():
     fig.update_layout(
         annotations=[
             dict(
-                text="SPC Insight Pro • AIQM Analytics",
+                text="SPC Insights • AIQM India",
                 x=1,
                 y=-0.12,
                 xref="paper",

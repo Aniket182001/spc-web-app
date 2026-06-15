@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QPulse Analytics</title>
+  <title>SPC Insights — Statistical Process Control Platform</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1340,7 +1340,7 @@
             </svg>
           </div>
           <div class="brand-text">
-            <h1>QPulse Analytics</h1>
+            <h1>SPC Insights</h1>
             <p>Statistical Process Control Platform</p>
           </div>
         </a>
@@ -1608,7 +1608,7 @@
                 </svg>
                 Control Chart Output
               </div>
-              <span class="chart-card-meta">QPulse Analytics &bull; AIQM India</span>
+              <span class="chart-card-meta">SPC Insights &bull; AIQM India</span>
             </div>
             <div class="chart-output{{ ' chart-output--single' if is_single_chart else '' }}">{{ graph|safe }}</div>
           </div>
@@ -1646,9 +1646,18 @@
     </main>
 
     <footer>
-      <div class="footer-inner">
-        <span class="footer-copy">v2.0 &bull; QPulse Analytics</span>
-        <span class="footer-org">Developed by AIQM India</span>
+      <div class="footer-inner" style="flex-direction: column; gap: 8px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <strong style="font-size: 0.85rem; color: var(--text-primary);">SPC Insights</strong>
+          <span style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Statistical Process Control Platform</span>
+        </div>
+        <p style="margin: 4px 0; font-size: 0.75rem; color: var(--text-secondary); max-width: 600px; line-height: 1.5;">
+          Helping organizations monitor and improve process performance through statistical control charts.
+        </p>
+        <div style="display: flex; justify-content: space-between; width: 100%; align-items: center; margin-top: 8px; border-top: 1px solid var(--border-subtle); padding-top: 8px;">
+          <span style="font-size: 0.7rem; color: var(--text-secondary);">Powered by <strong>AIQM India</strong></span>
+          <span class="footer-copy">&copy; 2026 AIQM India. All rights reserved.</span>
+        </div>
       </div>
     </footer>
 

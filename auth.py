@@ -1,5 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy.exc import SQLAlchemyError
 
 from extensions import db
 from models import User
@@ -22,7 +23,11 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        user = User.query.filter_by(username=username).first()
+        try:
+            user = User.query.filter_by(username=username).first()
+        except SQLAlchemyError:
+            flash("Database connection error. Please try again later or contact support.", "error")
+            return render_template("login.html")
 
         if user and user.check_password(password):
             login_user(user)
@@ -51,14 +56,19 @@ def register():
             flash("Passwords do not match.", "error")
             return render_template("register.html")
 
-        if User.query.filter_by(username=username).first():
-            flash("Username is already registered.", "error")
-            return render_template("register.html")
+        try:
+            if User.query.filter_by(username=username).first():
+                flash("Username is already registered.", "error")
+                return render_template("register.html")
 
-        user = User(username=username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
+            user = User(username=username)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database connection error. Please try again later or contact support.", "error")
+            return render_template("register.html")
 
         login_user(user)
         return redirect(url_for("spc.dashboard"))
