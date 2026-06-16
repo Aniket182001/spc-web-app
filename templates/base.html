@@ -757,7 +757,6 @@
               </form>
             {% else %}
               <a href="{{ url_for('auth.login') }}" class="auth-link {% if request.endpoint == 'auth.login' %}is-active{% endif %}">Login</a>
-              <a href="{{ url_for('auth.register') }}" class="auth-link {% if request.endpoint == 'auth.register' %}is-active{% endif %}">Register</a>
             {% endif %}
           </div>
           {% endif %}
