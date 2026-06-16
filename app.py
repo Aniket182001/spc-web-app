@@ -1,7 +1,6 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy.exc import SQLAlchemyError
-
 # Load environment variables from .env file if it exists
 load_dotenv()
 
@@ -25,11 +24,19 @@ def open_browser():
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
-db_url = os.environ.get("DATABASE_URL")
-if not db_url:
-    if os.environ.get("FLASK_ENV") == "production":
-        raise ValueError("DATABASE_URL environment variable is required in production.")
-    db_url = "sqlite:///spc_app.db"
+flask_env = os.environ.get("FLASK_ENV", "development")
+if flask_env == "production" and not os.environ.get("DATABASE_URL"):
+    raise RuntimeError(
+        "DATABASE_URL missing in production environment. Refusing to fall back to SQLite."
+    )
+
+sqlite_path = os.path.join(app.instance_path, "spc_app.db")
+default_sqlite_path = f"sqlite:///{sqlite_path}"
+
+db_url = os.environ.get(
+    "DATABASE_URL",
+    default_sqlite_path,
+)
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
