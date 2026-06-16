@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ chart.chart_type }} - QPulse Analytics{% endblock %}
+{% block title %}{{ chart.chart_type }} - SPC Insights{% endblock %}
 
 {% block head_extra %}
 <style>
@@ -219,7 +219,7 @@
   </article>
 
   <div class="chart-info-actions">
-    <a class="chart-info-back" href="{{ url_for('spc.home') }}">
+    <a class="chart-info-back" href="{{ url_for('spc.dashboard') }}">
       &larr; Return to Control Chart Analysis
     </a>
   </div>

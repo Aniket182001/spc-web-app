@@ -155,7 +155,7 @@
 <body>
 
 <div class="topbar">
-    <a href="{{ url_for('spc.home') }}">SPC Insight Pro</a>
+    <a href="{{ url_for('spc.dashboard') }}">SPC Insights</a>
     {% include "components/system_status.html" %}
     <div class="account-actions">
         {% if current_user.is_authenticated %}

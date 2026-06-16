@@ -173,10 +173,12 @@ CHART_INFO = {
 chart_info_bp = Blueprint("chart_info", __name__)
 
 
-@chart_info_bp.route("/chart-info/<chart_type>")
+@chart_info_bp.route("/charts/<chart_type>")
 @login_required
 def chart_info_detail(chart_type):
-    chart = CHART_INFO.get(chart_type)
+    # Normalize hyphen to underscore to match dictionary keys
+    normalized_chart_type = chart_type.replace("-", "_")
+    chart = CHART_INFO.get(normalized_chart_type)
 
     if chart is None:
         abort(404)

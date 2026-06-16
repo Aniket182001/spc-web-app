@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Report -QPulse Analytics{% endblock %}
+{% block title %}Report - SPC Insights{% endblock %}
 
 {% block content %}
 <section class="auth-shell">
@@ -22,7 +22,7 @@
     <div class="card-body">
       <a href="{{ report_url }}" class="btn-primary" download>Download PDF Report</a>
       <div class="auth-footer">
-        <a href="{{ url_for('spc.home') }}">Return to control chart analysis</a>
+        <a href="{{ url_for('spc.dashboard') }}">Return to control chart analysis</a>
       </div>
     </div>
   </div>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}QPulse Analytics{% endblock %}</title>
+  <title>{% block title %}SPC Insights — Statistical Process Control Platform{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -679,7 +679,219 @@
         padding: 28px 16px 44px;
       }
     }
+
+    /* ── SITE FOOTER ──────────────────────────────────────── */
+    .site-footer {
+      position: relative;
+      z-index: 10;
+      background: #0a0e1a;
+      border-top: 1px solid rgba(255,255,255,0.07);
+      margin-top: auto;
+    }
+
+    [data-theme="light"] .site-footer {
+      background: #0f172a;
+      border-top-color: rgba(255,255,255,0.06);
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 36px 32px;
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .footer-brand-icon {
+      width: 36px;
+      height: 36px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #1d4ed8, #3b82f6);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.25), 0 4px 12px rgba(37,99,235,0.28);
+    }
+
+    .footer-brand-icon svg { width: 18px; height: 18px; }
+
+    .footer-brand-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .footer-brand-tagline {
+      font-size: 0.68rem;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 2px;
+    }
+
+    .footer-brand-desc {
+      color: #64748b;
+      font-size: 0.84rem;
+      line-height: 1.7;
+      max-width: 340px;
+    }
+
+    .footer-social-placeholder { margin-top: 16px; height: 8px; }
+
+    .footer-col-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.66rem;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: #334155;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .footer-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .footer-nav-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      color: #94a3b8;
+      font-size: 0.86rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+    }
+
+    .footer-nav-link svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: #475569;
+      stroke: #475569;
+      transition: color 0.2s ease, stroke 0.2s ease;
+    }
+
+    .footer-nav-link:hover {
+      background: rgba(255,255,255,0.04);
+      color: #e2e8f0;
+      transform: translateX(3px);
+    }
+
+    .footer-nav-link:hover svg {
+      color: #60a5fa;
+      stroke: #60a5fa;
+    }
+
+    .footer-contact-block {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .footer-contact-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-aiqm-logo {
+      width: 18px;
+      height: 18px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: brightness(0) invert(0.5);
+    }
+
+    .footer-contact-org {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .footer-contact-row svg {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: #334155;
+      stroke: #334155;
+    }
+
+    .footer-link-ext {
+      color: #60a5fa;
+      font-size: 0.84rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .footer-link-ext:hover {
+      color: #93c5fd;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .footer-contact-future-slot { margin-top: 14px; min-height: 16px; }
+
+    .footer-bottom {
+      border-top: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .footer-bottom-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 14px 36px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .footer-copyright { font-size: 0.76rem; color: #334155; }
+    .footer-bottom-divider { color: #1e293b; font-size: 0.76rem; }
+    .footer-built-with { font-size: 0.76rem; color: #1e293b; }
+
+    @media (max-width: 900px) {
+      .footer-inner {
+        grid-template-columns: 1fr 1fr;
+        gap: 32px;
+        padding: 32px 24px 28px;
+      }
+      .footer-brand-desc { max-width: 100%; }
+    }
+
+    @media (max-width: 580px) {
+      .footer-inner {
+        grid-template-columns: 1fr;
+        gap: 28px;
+        padding: 28px 20px 24px;
+      }
+      .footer-bottom-inner {
+        padding: 12px 20px;
+        justify-content: center;
+        text-align: center;
+      }
+    }
   </style>
+
   {% block head_extra %}{% endblock %}
 </head>
 
@@ -716,7 +928,7 @@
   <div class="page-wrapper">
     <header>
       <div class="header-inner">
-        <a href="{{ url_for('spc.home') }}" class="brand">
+        <a href="{{ url_for('home') }}" class="brand">
           <div class="brand-icon">
             <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2" y="11" width="3" height="7" rx="1" fill="white" opacity="0.7"/>
@@ -727,7 +939,7 @@
             </svg>
           </div>
           <div class="brand-text">
-            <h1>QPulse Analytics</h1>
+            <h1>SPC Insights</h1>
             <p>Statistical Process Control Platform</p>
           </div>
         </a>
@@ -795,7 +1007,69 @@
     <main>
       {% block content %}{% endblock %}
     </main>
-  </div>
+
+    <!-- ── SITE FOOTER ───────────────────────────────── -->
+    <footer class="site-footer">
+      <div class="footer-inner">
+
+        <!-- LEFT: Brand -->
+        <div class="footer-col footer-brand-col">
+          <div class="footer-brand">
+            <div class="footer-brand-icon">
+              <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="11" width="3" height="7" rx="1" fill="white" opacity="0.7"/>
+                <rect x="7" y="6" width="3" height="12" rx="1" fill="white"/>
+                <rect x="12" y="8" width="3" height="10" rx="1" fill="white" opacity="0.85"/>
+                <rect x="17" y="4" width="3" height="14" rx="1" fill="white" opacity="0.6"/>
+                <line x1="1" y1="9" x2="20" y2="9" stroke="rgba(255,255,255,0.4)" stroke-width="0.75" stroke-dasharray="2 1"/>
+              </svg>
+            </div>
+            <div>
+              <div class="footer-brand-name">SPC Insights</div>
+              <div class="footer-brand-tagline">Statistical Process Control Platform</div>
+            </div>
+          </div>
+          <p class="footer-brand-desc">
+            Helping organizations monitor and improve process performance through statistical control charts.
+          </p>
+          <!-- Reserved: social media links -->
+          <div class="footer-social-placeholder" aria-hidden="true"></div>
+        </div>
+
+        <!-- RIGHT: Powered by AIQM India -->
+        <div class="footer-col footer-contact-col">
+          <div class="footer-col-label">Powered by AIQM India</div>
+          <div class="footer-contact-block">
+            <div class="footer-contact-row">
+              <img
+                src="{{ url_for('static', filename='images/aiqm-logo.png') }}"
+                alt="AIQM India"
+                class="footer-aiqm-logo"
+              >
+              <span class="footer-contact-org">AIQM India</span>
+            </div>
+            <div class="footer-contact-row">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6"/><path d="M8 2c0 0-3 2.5-3 6s3 6 3 6"/><path d="M8 2c0 0 3 2.5 3 6s-3 6-3 6"/><line x1="2" y1="8" x2="14" y2="8"/></svg>
+              <a href="https://www.aiqmindia.com" target="_blank" rel="noopener noreferrer" class="footer-link-ext">
+                www.aiqmindia.com
+              </a>
+            </div>
+          </div>
+          <!-- Reserved: email, phone, additional contact rows -->
+          <div class="footer-contact-future-slot" aria-hidden="true"></div>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="footer-bottom">
+        <div class="footer-bottom-inner">
+          <span class="footer-copyright">&copy; 2026 AIQM India. All rights reserved.</span>
+        </div>
+      </div>
+    </footer>
+
+  </div><!-- /.page-wrapper -->
 
   <script>
     const html = document.documentElement;

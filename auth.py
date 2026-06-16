@@ -1,5 +1,6 @@
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
+from sqlalchemy.exc import SQLAlchemyError
 
 from extensions import db
 from models import User
@@ -11,18 +12,22 @@ auth_bp = Blueprint("auth", __name__)
 def _safe_next_url(next_url):
     if next_url and next_url.startswith("/") and not next_url.startswith("//"):
         return next_url
-    return url_for("spc.home")
+    return url_for("spc.dashboard")
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-        user = User.query.filter_by(username=username).first()
+        try:
+            user = User.query.filter_by(username=username).first()
+        except SQLAlchemyError:
+            flash("Database connection error. Please try again later or contact support.", "error")
+            return render_template("login.html")
 
         if user and user.check_password(password):
             login_user(user)
@@ -36,7 +41,7 @@ def login():
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     if request.method == "POST":
         username = request.form.get("username", "").strip()
@@ -51,17 +56,22 @@ def register():
             flash("Passwords do not match.", "error")
             return render_template("register.html")
 
-        if User.query.filter_by(username=username).first():
-            flash("Username is already registered.", "error")
+        try:
+            if User.query.filter_by(username=username).first():
+                flash("Username is already registered.", "error")
+                return render_template("register.html")
+
+            user = User(username=username)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database connection error. Please try again later or contact support.", "error")
             return render_template("register.html")
 
-        user = User(username=username)
-        user.set_password(password)
-        db.session.add(user)
-        db.session.commit()
-
         login_user(user)
-        return redirect(url_for("spc.home"))
+        return redirect(url_for("spc.dashboard"))
 
     return render_template("register.html")
 

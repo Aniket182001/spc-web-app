@@ -1,10 +1,12 @@
 import os
 from dotenv import load_dotenv
+from sqlalchemy.exc import SQLAlchemyError
 
 # Load environment variables from .env file if it exists
 load_dotenv()
 
-from flask import Flask, request, url_for
+
+from flask import Flask, render_template, request, url_for
 from auth import auth_bp
 from chart_info import CHART_INFO, chart_info_bp
 from extensions import db, login_manager
@@ -23,10 +25,11 @@ def open_browser():
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
-db_url = os.environ.get(
-    "DATABASE_URL",
-    "sqlite:///spc_app.db",
-)
+db_url = os.environ.get("DATABASE_URL")
+if not db_url:
+    if os.environ.get("FLASK_ENV") == "production":
+        raise ValueError("DATABASE_URL environment variable is required in production.")
+    db_url = "sqlite:///spc_app.db"
 if db_url.startswith("postgres://"):
     db_url = db_url.replace("postgres://", "postgresql://", 1)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
@@ -40,7 +43,7 @@ os.makedirs("static", exist_ok=True)
 db.init_app(app)
 login_manager.init_app(app)
 login_manager.login_view = "auth.login"
-login_manager.login_message = "Please log in to access SPC Insight Pro."
+login_manager.login_message = "Please log in to access SPC Insights."
 
 # Initialize Flask-Migrate
 migrate = Migrate(app, db, render_as_batch=True)
@@ -50,7 +53,7 @@ csrf = CSRFProtect(app)
 def load_user(user_id):
     try:
         return User.query.get(int(user_id))
-    except ValueError:
+    except (ValueError, SQLAlchemyError):
         return None
 
 
@@ -61,6 +64,12 @@ app.register_blueprint(capability_bp)
 app.register_blueprint(chart_info_bp)
 
 
+# ─── Public homepage ───────────────────────────────────
+@app.route("/")
+def home():
+    return render_template("home.html")
+
+
 @app.context_processor
 def inject_chart_information():
     summaries = {
@@ -68,7 +77,7 @@ def inject_chart_information():
             "description": chart["short_description"],
             "url": url_for(
                 "chart_info.chart_info_detail",
-                chart_type=chart_slug,
+                chart_type=chart_slug.replace("_", "-"),
             ),
         }
         for chart_slug, chart in CHART_INFO.items()
