@@ -44,6 +44,9 @@ def login():
             return render_template("login.html")
 
         if user and user.check_password(password):
+            if user.is_deleted:
+                flash("Your account has been deactivated. Contact administrator.", "error")
+                return redirect(url_for("auth.login"))
             if not user.is_active:
                 flash("Your account has been deactivated. Contact administrator.", "error")
                 return redirect(url_for("auth.login"))
@@ -53,6 +56,54 @@ def login():
         flash("Invalid username or password.", "error")
 
     return render_template("login.html")
+
+
+@auth_bp.before_app_request
+def require_password_change():
+    """Force users with must_change_password to change their password before accessing the app."""
+    if current_user.is_authenticated and current_user.must_change_password:
+        # Allow requests to static files and auth routes to go through
+        allowed_endpoints = ("auth.change_password", "auth.logout", "static")
+        if request.endpoint and request.endpoint not in allowed_endpoints:
+            return redirect(url_for("auth.change_password"))
+
+
+@auth_bp.route("/change-password", methods=["GET", "POST"])
+def change_password():
+    if not current_user.is_authenticated:
+        return redirect(url_for("auth.login"))
+
+    # We don't block them from accessing this page even if must_change_password is False,
+    # but the prompt focuses on "First-login password change" so it's mainly for that.
+
+    if request.method == "POST":
+        current_pwd = request.form.get("current_password", "")
+        new_pwd = request.form.get("new_password", "")
+        confirm_pwd = request.form.get("confirm_password", "")
+
+        if not current_pwd or not new_pwd:
+            flash("All fields are required.", "error")
+            return render_template("change_password.html")
+
+        if not current_user.check_password(current_pwd):
+            flash("Current password is incorrect.", "error")
+            return render_template("change_password.html")
+
+        if new_pwd != confirm_pwd:
+            flash("New password and confirm password do not match.", "error")
+            return render_template("change_password.html")
+
+        current_user.set_password(new_pwd)
+        current_user.must_change_password = False
+        try:
+            db.session.commit()
+            flash("Password changed successfully.", "success")
+            return redirect(url_for("spc.dashboard"))
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database error. Please try again.", "error")
+
+    return render_template("change_password.html")
 
 
 @auth_bp.route("/register", methods=["GET", "POST"])

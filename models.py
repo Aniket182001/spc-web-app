@@ -18,6 +18,8 @@ class User(UserMixin, db.Model):
     # SaaS: role controls access level; is_active controls account status
     role = db.Column(db.String(20), nullable=False, default="user")
     is_active = db.Column(db.Boolean, nullable=False, default=True)
+    must_change_password = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    is_deleted = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

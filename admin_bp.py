@@ -13,8 +13,14 @@ admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 @admin_required
 def users():
     """Admin-only page listing all registered users."""
-    all_users = User.query.order_by(User.username).all()
-    return render_template("admin/users.html", users=all_users)
+    show_archived = request.args.get("show_archived", "false").lower() == "true"
+    
+    query = User.query
+    if not show_archived:
+        query = query.filter_by(is_deleted=False)
+        
+    all_users = query.order_by(User.username).all()
+    return render_template("admin/users.html", users=all_users, show_archived=show_archived)
 
 
 @admin_bp.route("/user/<int:user_id>/toggle-status", methods=["POST"])
@@ -82,6 +88,7 @@ def create_user():
         # ── Create user ───────────────────────────────────
         new_user = User(username=username)
         new_user.set_password(password)
+        new_user.must_change_password = True
         # role and is_active default to "user" / True via model defaults
         try:
             db.session.add(new_user)
@@ -132,3 +139,47 @@ def reset_password(user_id):
             return render_template("admin/reset_password.html", user=target)
 
     return render_template("admin/reset_password.html", user=target)
+
+
+@admin_bp.route("/user/<int:user_id>/delete", methods=["POST"])
+@admin_required
+def delete_user(user_id):
+    """Soft delete a user."""
+    target = User.query.get_or_404(user_id)
+
+    if target.id == current_user.id:
+        flash("You cannot delete your own account.", "error")
+        return redirect(url_for("admin.users"))
+
+    if target.role == "admin":
+        flash("Admin accounts cannot be deleted.", "error")
+        return redirect(url_for("admin.users"))
+
+    target.is_deleted = True
+    target.is_active = False
+    try:
+        db.session.commit()
+        flash("User archived successfully.", "success")
+    except SQLAlchemyError:
+        db.session.rollback()
+        flash("Database error. Please try again.", "error")
+
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/user/<int:user_id>/restore", methods=["POST"])
+@admin_required
+def restore_user(user_id):
+    """Restore a soft-deleted user."""
+    target = User.query.get_or_404(user_id)
+
+    target.is_deleted = False
+    target.is_active = True
+    try:
+        db.session.commit()
+        flash("User restored successfully.", "success")
+    except SQLAlchemyError:
+        db.session.rollback()
+        flash("Database error. Please try again.", "error")
+
+    return redirect(url_for("admin.users", show_archived="true"))
