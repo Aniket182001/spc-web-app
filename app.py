@@ -12,6 +12,7 @@ from extensions import db, login_manager
 from models import User
 from spc_charts import spc_bp
 from capability import capability_bp
+from admin_bp import admin_bp
 import webbrowser
 from threading import Timer
 from flask_migrate import Migrate
@@ -69,6 +70,7 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(spc_bp)
 app.register_blueprint(capability_bp)
 app.register_blueprint(chart_info_bp)
+app.register_blueprint(admin_bp)
 
 
 # ─── Admin CLI commands ────────────────────────────────
