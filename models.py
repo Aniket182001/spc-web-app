@@ -15,6 +15,9 @@ class User(UserMixin, db.Model):
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )
+    # SaaS: role controls access level; is_active controls account status
+    role = db.Column(db.String(20), nullable=False, default="user")
+    is_active = db.Column(db.Boolean, nullable=False, default=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
