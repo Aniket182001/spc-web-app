@@ -196,6 +196,41 @@
     text-align: right;
   }
 
+  /* ── Header row (title + button) ───────────────── */
+  .admin-page-header-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+  }
+
+  .btn-create-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: var(--accent-primary);
+    color: #fff;
+    text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    align-self: center;
+    transition: background 0.18s ease, transform 0.12s ease;
+  }
+
+  .btn-create-user:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
   /* ── Action buttons ──────────────────────────────── */
   .btn-activate,
   .btn-deactivate {
@@ -266,12 +301,17 @@
 <div class="admin-page">
 
   <!-- Page header -->
-  <div class="admin-page-header">
-    <h2>
-      User Management
-      <span class="admin-badge">Admin</span>
-    </h2>
-    <p>Manage SPC Tool users.</p>
+  <div class="admin-page-header-row">
+    <div class="admin-page-header">
+      <h2>
+        User Management
+        <span class="admin-badge">Admin</span>
+      </h2>
+      <p>Manage SPC Tool users.</p>
+    </div>
+    <a href="{{ url_for('admin.create_user') }}" class="btn-create-user">
+      + Create User
+    </a>
   </div>
 
   <!-- Flash messages -->
