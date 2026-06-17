@@ -1435,7 +1435,16 @@
             <div class="card-header" style="padding: 14px 18px;">
               <div>
                 <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
-                <div class="card-title" style="font-size: 1.05rem;">{{ current_user.plan_name }}</div>
+                <div class="card-title" style="font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                  {{ current_user.plan_name }}
+                  {% if not current_user.subscription_active %}
+                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Inactive</span>
+                  {% elif current_user.subscription_expires_at and now and current_user.subscription_expires_at < now %}
+                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Expired</span>
+                  {% elif current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit %}
+                    <span style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Monthly Limit Reached</span>
+                  {% endif %}
+                </div>
               </div>
             </div>
             <div class="card-body" style="padding: 14px 18px;">

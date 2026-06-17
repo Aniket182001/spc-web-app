@@ -13,6 +13,7 @@ import plotly.graph_objs as go
 from plotly.subplots import make_subplots
 import os
 import time
+from datetime import datetime
 
 from utils import allowed_file
 from werkzeug.utils import secure_filename
@@ -94,6 +95,7 @@ def dashboard():
         insight=None,
         warning=None,
         system_status="ready",
+        now=datetime.utcnow(),
     )
 
 
@@ -105,6 +107,37 @@ def dashboard():
 @login_required
 def upload_file():
     sample_size_input = request.form.get('sample_size')
+    chart_type = request.form.get('chart', 'xbar_r')
+
+    # =====================================================
+    # SUBSCRIPTION AND LIMIT ENFORCEMENT
+    # =====================================================
+    if not current_user.subscription_active:
+        return render_template(
+            'index.html',
+            insight="❌ Your subscription is inactive. Please contact the administrator.",
+            system_status="error",
+            selected_chart=chart_type,
+            now=datetime.utcnow()
+        )
+
+    if current_user.subscription_expires_at and current_user.subscription_expires_at < datetime.utcnow():
+        return render_template(
+            'index.html',
+            insight="❌ Your subscription has expired. Please contact the administrator.",
+            system_status="error",
+            selected_chart=chart_type,
+            now=datetime.utcnow()
+        )
+
+    if current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit:
+        return render_template(
+            'index.html',
+            insight="❌ You have reached your monthly chart limit.",
+            system_status="error",
+            selected_chart=chart_type,
+            now=datetime.utcnow()
+        )
 
     # =====================================================
     # FILE VALIDATION
@@ -1864,7 +1897,8 @@ def upload_file():
         warning=warning,
         is_single_chart=is_single_chart,
         system_status="processing",
-        selected_chart=chart_type
+        selected_chart=chart_type,
+        now=datetime.utcnow()
     )
 
     # =========================================================
