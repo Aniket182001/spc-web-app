@@ -1,4 +1,6 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+import functools
+
+from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_user, logout_user
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -7,6 +9,18 @@ from models import User
 
 
 auth_bp = Blueprint("auth", __name__)
+
+
+def admin_required(f):
+    """Decorator that restricts a view to admin users only (role == 'admin').
+    Returns HTTP 403 Forbidden for non-admins.
+    """
+    @functools.wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated or current_user.role != "admin":
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 def _safe_next_url(next_url):
@@ -30,6 +44,9 @@ def login():
             return render_template("login.html")
 
         if user and user.check_password(password):
+            if not user.is_active:
+                flash("Your account has been deactivated. Contact administrator.", "error")
+                return redirect(url_for("auth.login"))
             login_user(user)
             return redirect(_safe_next_url(request.args.get("next")))
 
