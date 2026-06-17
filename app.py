@@ -71,6 +71,36 @@ app.register_blueprint(capability_bp)
 app.register_blueprint(chart_info_bp)
 
 
+# ─── Admin CLI commands ────────────────────────────────
+import click
+
+@app.cli.command("make-admin")
+@click.argument("username")
+def make_admin(username):
+    """Promote a user to admin role by USERNAME.
+
+    Example:
+        flask make-admin johndoe
+    """
+    user = User.query.filter_by(username=username).first()
+    if user is None:
+        click.echo(f"[ERROR] No user found with username '{username}'.")
+        raise SystemExit(1)
+
+    if user.role == "admin":
+        click.echo(f"[INFO] '{username}' is already an admin. No changes made.")
+        return
+
+    user.role = "admin"
+    try:
+        db.session.commit()
+        click.echo(f"[OK] '{username}' has been promoted to admin.")
+    except SQLAlchemyError as exc:
+        db.session.rollback()
+        click.echo(f"[ERROR] Database error: {exc}")
+        raise SystemExit(1)
+
+
 # ─── Public homepage ───────────────────────────────────
 @app.route("/")
 def home():
