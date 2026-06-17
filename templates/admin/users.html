@@ -370,6 +370,8 @@
         <tr>
           <th>Username</th>
           <th>Role</th>
+          <th>Plan</th>
+          <th>Usage</th>
           <th>Status</th>
           <th>Action</th>
         </tr>
@@ -390,6 +392,22 @@
           <!-- Role -->
           <td>
             <span class="role-pill {{ user.role }}">{{ user.role }}</span>
+          </td>
+
+          <!-- Plan -->
+          <td>
+            <span style="font-weight: 500; color: var(--text-primary);">{{ user.plan_name }}</span>
+          </td>
+
+          <!-- Usage -->
+          <td>
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">
+              {% if user.monthly_chart_limit == -1 %}
+                Unlimited
+              {% else %}
+                {{ user.charts_used_this_month }} / {{ user.monthly_chart_limit }}
+              {% endif %}
+            </span>
           </td>
 
           <!-- Status -->

@@ -89,6 +89,10 @@ def create_user():
         new_user = User(username=username)
         new_user.set_password(password)
         new_user.must_change_password = True
+        new_user.plan_name = "Free"
+        new_user.monthly_chart_limit = 20
+        new_user.charts_used_this_month = 0
+        new_user.subscription_active = True
         # role and is_active default to "user" / True via model defaults
         try:
             db.session.add(new_user)
