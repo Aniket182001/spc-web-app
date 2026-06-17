@@ -1,4 +1,4 @@
-from flask import Blueprint, flash, redirect, render_template, url_for
+from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -51,3 +51,46 @@ def toggle_status(user_id):
         flash("Database error. Please try again.", "error")
 
     return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/create", methods=["GET", "POST"])
+@admin_required
+def create_user():
+    """Admin-only form to create a new user account."""
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm  = request.form.get("confirm_password", "")
+
+        # ── Validation ────────────────────────────────────
+        if not username:
+            flash("Username cannot be empty.", "error")
+            return render_template("admin/create_user.html", username=username)
+
+        if not password:
+            flash("Password cannot be empty.", "error")
+            return render_template("admin/create_user.html", username=username)
+
+        if password != confirm:
+            flash("Passwords do not match.", "error")
+            return render_template("admin/create_user.html", username=username)
+
+        if User.query.filter_by(username=username).first():
+            flash(f"Username '{username}' is already taken.", "error")
+            return render_template("admin/create_user.html", username=username)
+
+        # ── Create user ───────────────────────────────────
+        new_user = User(username=username)
+        new_user.set_password(password)
+        # role and is_active default to "user" / True via model defaults
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash(f"User '{username}' created successfully.", "success")
+            return redirect(url_for("admin.users"))
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database error. Please try again.", "error")
+            return render_template("admin/create_user.html", username=username)
+
+    return render_template("admin/create_user.html", username="")
