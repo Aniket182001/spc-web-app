@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Management — SPC Insights{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* Reuse admin styles */
+  .admin-page {
+    position: relative;
+    z-index: 2;
+    max-width: 1200px;
+    margin: 48px auto 80px;
+    padding: 0 24px;
+  }
+
+  .admin-page-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+  }
+
+  .admin-page-header h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .admin-badge {
+    background: rgba(37, 99, 235, 0.15);
+    color: #3b82f6;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .admin-page-header p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Card & Table ────────────────────────────────── */
+  .admin-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  .user-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+  }
+
+  .user-table th {
+    background: var(--bg-body);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .user-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  .user-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .user-table tbody tr {
+    transition: background 0.15s ease;
+  }
+
+  .user-table tbody tr:hover {
+    background: var(--bg-hover);
+  }
+
+  /* ── Pills & Status ──────────────────────────────── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .status-pill.active {
+    background: var(--status-bg);
+    color: var(--status-color);
+  }
+
+  .status-pill.inactive {
+    background: var(--error-bg);
+    color: var(--error-text);
+  }
+
+  /* ── Action buttons ──────────────────────────────── */
+  .btn-manage {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.12s ease;
+    color: #fff;
+    background: var(--accent-primary);
+    text-decoration: none;
+  }
+
+  .btn-manage:hover {
+    opacity: 0.82;
+    transform: translateY(-1px);
+  }
+
+  /* ── Flash messages ──────────────────────────────── */
+  .flash-list {
+    list-style: none;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flash-msg {
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+
+  .flash-msg.success {
+    color: var(--status-color);
+    background: var(--status-bg);
+    border-color: var(--status-border);
+  }
+
+  .flash-msg.error {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+  <!-- Page header -->
+  <div class="admin-page-header-row">
+    <div class="admin-page-header">
+      <h2>
+        Subscription Management
+        <span class="admin-badge">Admin</span>
+      </h2>
+      <p>Manage subscription plans, limits, and usage for active users.</p>
+    </div>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-msg {{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Subscriptions card -->
+  <div class="admin-card">
+    {% if users %}
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Current Plan</th>
+          <th>Usage</th>
+          <th>Subscription Status</th>
+          <th>Expiry Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <!-- Username -->
+          <td>
+            <div style="font-weight: 600; color: var(--text-primary);">
+              {% if user.role == "admin" %}
+                <span title="Administrator">👑</span>
+              {% endif %}
+              {{ user.username }}
+            </div>
+          </td>
+
+          <!-- Plan -->
+          <td>
+            <span style="font-weight: 500; color: var(--text-primary);">{{ user.plan_name }}</span>
+          </td>
+
+          <!-- Usage -->
+          <td>
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">
+              {% if user.monthly_chart_limit == -1 %}
+                Unlimited
+              {% else %}
+                {{ user.charts_used_this_month }} / {{ user.monthly_chart_limit }}
+              {% endif %}
+            </span>
+          </td>
+
+          <!-- Subscription Status -->
+          <td>
+            {% if user.subscription_active %}
+              <span class="status-pill active">Active</span>
+            {% else %}
+              <span class="status-pill inactive">Inactive</span>
+            {% endif %}
+          </td>
+
+          <!-- Expiry Date -->
+          <td>
+            <span style="color: var(--text-secondary); font-size: 0.85rem;">
+              {% if user.subscription_expires_at %}
+                {{ user.subscription_expires_at.strftime('%Y-%m-%d') }}
+              {% else %}
+                Never
+              {% endif %}
+            </span>
+          </td>
+
+          <!-- Action -->
+          <td>
+            <a href="{{ url_for('admin.manage_subscription', user_id=user.id) }}" class="btn-manage">Manage Subscription</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div style="padding: 40px; text-align: center; color: var(--text-secondary);">
+      No users found.
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
