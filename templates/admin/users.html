@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}User Management — SPC Insights{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* ── Admin page wrapper ──────────────────────────── */
+  .admin-page {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 48px auto 80px;
+    padding: 0 24px;
+  }
+
+  /* ── Page header ─────────────────────────────────── */
+  .admin-page-header {
+    margin-bottom: 32px;
+  }
+
+  .admin-page-header h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+
+  .admin-page-header p {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Admin badge next to title ───────────────────── */
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    border-radius: 20px;
+    padding: 2px 10px;
+    margin-left: 10px;
+    vertical-align: middle;
+    position: relative;
+    top: -2px;
+  }
+
+  /* ── Card ────────────────────────────────────────── */
+  .admin-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+
+  /* ── Table ───────────────────────────────────────── */
+  .user-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.91rem;
+  }
+
+  .user-table thead {
+    background: var(--bg-elevated);
+    border-bottom: 1px solid var(--border-default);
+  }
+
+  .user-table th {
+    padding: 13px 20px;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .user-table tbody tr {
+    border-bottom: 1px solid var(--border-subtle);
+    transition: background 0.15s ease;
+  }
+
+  .user-table tbody tr:last-child {
+    border-bottom: none;
+  }
+
+  .user-table tbody tr:hover {
+    background: var(--bg-elevated);
+  }
+
+  .user-table td {
+    padding: 14px 20px;
+    color: var(--text-primary);
+    vertical-align: middle;
+  }
+
+  /* ── Username cell ───────────────────────────────── */
+  .user-name {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .crown {
+    font-size: 1rem;
+    line-height: 1;
+  }
+
+  /* ── Role pill ───────────────────────────────────── */
+  .role-pill {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 11px;
+    border-radius: 20px;
+  }
+
+  .role-pill.admin {
+    color: var(--accent-primary);
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+  }
+
+  .role-pill.user {
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+  }
+
+  /* ── Status pill ─────────────────────────────────── */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 11px;
+    border-radius: 20px;
+  }
+
+  .status-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-pill.active {
+    color: var(--status-color);
+    background: var(--status-bg);
+    border: 1px solid var(--status-border);
+  }
+
+  .status-pill.active::before {
+    background: var(--status-color);
+  }
+
+  .status-pill.inactive {
+    color: var(--text-muted);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-default);
+  }
+
+  .status-pill.inactive::before {
+    background: var(--text-muted);
+  }
+
+  /* ── Empty state ─────────────────────────────────── */
+  .empty-state {
+    text-align: center;
+    padding: 52px 24px;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+  }
+
+  /* ── User count footer ───────────────────────────── */
+  .table-footer {
+    padding: 11px 20px;
+    background: var(--bg-elevated);
+    border-top: 1px solid var(--border-subtle);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-align: right;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+  <!-- Page header -->
+  <div class="admin-page-header">
+    <h2>
+      User Management
+      <span class="admin-badge">Admin</span>
+    </h2>
+    <p>Manage SPC Tool users.</p>
+  </div>
+
+  <!-- Users card -->
+  <div class="admin-card">
+    {% if users %}
+    <table class="user-table">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <!-- Username -->
+          <td>
+            <div class="user-name">
+              {% if user.role == "admin" %}
+                <span class="crown" title="Administrator">👑</span>
+              {% endif %}
+              {{ user.username }}
+            </div>
+          </td>
+
+          <!-- Role -->
+          <td>
+            <span class="role-pill {{ user.role }}">{{ user.role }}</span>
+          </td>
+
+          <!-- Status -->
+          <td>
+            {% if user.is_active %}
+              <span class="status-pill active">Active</span>
+            {% else %}
+              <span class="status-pill inactive">Inactive</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="table-footer">
+      {{ users | length }} user{{ 's' if users | length != 1 else '' }} total
+    </div>
+
+    {% else %}
+    <div class="empty-state">No users found in the database.</div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
