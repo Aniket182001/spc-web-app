@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user
 from sqlalchemy.exc import SQLAlchemyError
@@ -187,3 +188,55 @@ def restore_user(user_id):
         flash("Database error. Please try again.", "error")
 
     return redirect(url_for("admin.users", show_archived="true"))
+
+
+@admin_bp.route("/subscriptions")
+@admin_required
+def subscriptions():
+    """Admin-only page listing all non-deleted users and their subscriptions."""
+    users = User.query.filter_by(is_deleted=False).order_by(User.username).all()
+    return render_template("admin/subscriptions.html", users=users)
+
+
+@admin_bp.route("/user/<int:user_id>/subscription", methods=["GET", "POST"])
+@admin_required
+def manage_subscription(user_id):
+    """Admin-only form to manage a user's subscription."""
+    target = User.query.get_or_404(user_id)
+
+    if request.method == "POST":
+        plan_name = request.form.get("plan_name", "Free")
+        monthly_chart_limit_str = request.form.get("monthly_chart_limit", "20")
+        subscription_active_str = request.form.get("subscription_active", "false")
+        expiry_date_str = request.form.get("subscription_expires_at", "")
+
+        # ── Update Subscription ───────────────────────────
+        target.plan_name = plan_name
+        
+        try:
+            target.monthly_chart_limit = int(monthly_chart_limit_str)
+        except ValueError:
+            target.monthly_chart_limit = 20
+
+        target.subscription_active = (subscription_active_str.lower() == "true")
+
+        if expiry_date_str:
+            try:
+                # Assuming HTML5 date input which uses YYYY-MM-DD format
+                target.subscription_expires_at = datetime.strptime(expiry_date_str, "%Y-%m-%d")
+            except ValueError:
+                target.subscription_expires_at = None
+                flash("Invalid expiry date format. Cleared expiry date.", "error")
+        else:
+            target.subscription_expires_at = None
+
+        try:
+            db.session.commit()
+            flash(f"Subscription for '{target.username}' updated successfully.", "success")
+            return redirect(url_for("admin.subscriptions"))
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database error. Please try again.", "error")
+            return render_template("admin/manage_subscription.html", user=target)
+
+    return render_template("admin/manage_subscription.html", user=target)

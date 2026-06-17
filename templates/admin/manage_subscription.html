@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subscription — {{ user.username }}{% endblock %}
+
+{% block head_extra %}
+<style>
+  /* ── Page wrapper ────────────────────────────────── */
+  .admin-page {
+    position: relative;
+    z-index: 2;
+    max-width: 900px;
+    margin: 48px auto 80px;
+    padding: 0 24px;
+  }
+
+  /* ── Page header ─────────────────────────────────── */
+  .admin-page-header {
+    margin-bottom: 32px;
+  }
+
+  .admin-page-header h2 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+  }
+
+  .admin-badge {
+    background: rgba(37, 99, 235, 0.15);
+    color: #3b82f6;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .admin-page-header p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+  }
+
+  /* ── Flash messages ──────────────────────────────── */
+  .flash-list {
+    list-style: none;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flash-msg {
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+
+  .flash-msg.error {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+  }
+
+  /* ── Form card ───────────────────────────────────── */
+  .admin-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    box-shadow: var(--shadow-card);
+    padding: 36px 40px;
+    max-width: 500px;
+  }
+
+  /* ── Form fields ─────────────────────────────────── */
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .form-group label {
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.03em;
+  }
+
+  .form-group input,
+  .form-group select {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    padding: 9px 13px;
+    font-family: inherit;
+    font-size: 0.93rem;
+    box-shadow: var(--shadow-input);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease;
+    outline: none;
+    width: 100%;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+  }
+
+  /* ── Form actions ────────────────────────────────── */
+  .form-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 600;
+    padding: 9px 24px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: var(--accent-primary);
+    color: #fff;
+    transition: background 0.18s ease, transform 0.12s ease;
+  }
+
+  .btn-primary:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+  }
+
+  .btn-cancel {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 9px 4px;
+    transition: color 0.15s ease;
+  }
+
+  .btn-cancel:hover {
+    color: var(--text-primary);
+  }
+
+  .help-text {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-page">
+
+  <!-- Page header -->
+  <div class="admin-page-header">
+    <h2>
+      Manage Subscription
+      <span class="admin-badge">Admin</span>
+    </h2>
+    <p>Update subscription details for <strong>{{ user.username }}</strong>.</p>
+  </div>
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-msg {{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
+  <!-- Form card -->
+  <div class="admin-card">
+    <form method="post" action="{{ url_for('admin.manage_subscription', user_id=user.id) }}" novalidate>
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="form-group">
+        <label for="plan_name">Plan</label>
+        <select id="plan_name" name="plan_name">
+          <option value="Free" {% if user.plan_name == 'Free' %}selected{% endif %}>Free</option>
+          <option value="Starter" {% if user.plan_name == 'Starter' %}selected{% endif %}>Starter</option>
+          <option value="Professional" {% if user.plan_name == 'Professional' %}selected{% endif %}>Professional</option>
+          <option value="Enterprise" {% if user.plan_name == 'Enterprise' %}selected{% endif %}>Enterprise</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="monthly_chart_limit">Monthly Chart Limit</label>
+        <input
+          id="monthly_chart_limit"
+          name="monthly_chart_limit"
+          type="number"
+          value="{{ user.monthly_chart_limit }}"
+          required
+        >
+        <div class="help-text">Set to -1 for Unlimited. (Defaults: Free = 20, Starter = 500, Professional = -1, Enterprise = -1)</div>
+      </div>
+
+      <div class="form-group">
+        <label for="subscription_active">Subscription Active</label>
+        <select id="subscription_active" name="subscription_active">
+          <option value="true" {% if user.subscription_active %}selected{% endif %}>True</option>
+          <option value="false" {% if not user.subscription_active %}selected{% endif %}>False</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="subscription_expires_at">Expiry Date (Optional)</label>
+        <input
+          id="subscription_expires_at"
+          name="subscription_expires_at"
+          type="date"
+          value="{{ user.subscription_expires_at.strftime('%Y-%m-%d') if user.subscription_expires_at else '' }}"
+        >
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Save Changes</button>
+        <a href="{{ url_for('admin.subscriptions') }}" class="btn-cancel">Cancel</a>
+      </div>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  // Add simple JS to auto-fill limits based on plan selection
+  const planSelect = document.getElementById('plan_name');
+  const limitInput = document.getElementById('monthly_chart_limit');
+
+  planSelect.addEventListener('change', function() {
+    const val = this.value;
+    if (val === 'Free') {
+      limitInput.value = '20';
+    } else if (val === 'Starter') {
+      limitInput.value = '500';
+    } else if (val === 'Professional' || val === 'Enterprise') {
+      limitInput.value = '-1';
+    }
+  });
+</script>
+{% endblock %}
