@@ -233,7 +233,8 @@
 
   /* ── Action buttons ──────────────────────────────── */
   .btn-activate,
-  .btn-deactivate {
+  .btn-deactivate,
+  .btn-reset {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -249,7 +250,8 @@
   }
 
   .btn-activate:hover,
-  .btn-deactivate:hover {
+  .btn-deactivate:hover,
+  .btn-reset:hover {
     opacity: 0.82;
     transform: translateY(-1px);
   }
@@ -264,6 +266,14 @@
     color: var(--error-text);
     background: var(--error-bg);
     border-color: var(--error-border);
+  }
+
+  .btn-reset {
+    color: var(--accent-primary);
+    background: var(--info-bg);
+    border-color: var(--info-border);
+    text-decoration: none;
+    margin-left: 6px;
   }
 
   /* ── Flash messages ──────────────────────────────── */
@@ -375,6 +385,7 @@
                   <button type="submit" class="btn-activate">Activate</button>
                 {% endif %}
               </form>
+              <a href="{{ url_for('admin.reset_password', user_id=user.id) }}" class="btn-reset">Reset Password</a>
             {% endif %}
           </td>
         </tr>

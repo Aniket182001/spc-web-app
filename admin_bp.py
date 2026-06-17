@@ -94,3 +94,41 @@ def create_user():
             return render_template("admin/create_user.html", username=username)
 
     return render_template("admin/create_user.html", username="")
+
+
+@admin_bp.route("/user/<int:user_id>/reset-password", methods=["GET", "POST"])
+@admin_required
+def reset_password(user_id):
+    """Admin-only form to reset a user's password."""
+    target = User.query.get_or_404(user_id)
+
+    # Safety: block acting on admins
+    if target.role == "admin":
+        flash("Admin account passwords cannot be reset here.", "error")
+        return redirect(url_for("admin.users"))
+
+    if request.method == "POST":
+        password = request.form.get("password", "")
+        confirm  = request.form.get("confirm_password", "")
+
+        # ── Validation ────────────────────────────────────
+        if not password:
+            flash("Password cannot be empty.", "error")
+            return render_template("admin/reset_password.html", user=target)
+
+        if password != confirm:
+            flash("Passwords do not match.", "error")
+            return render_template("admin/reset_password.html", user=target)
+
+        # ── Reset password ────────────────────────────────
+        target.set_password(password)
+        try:
+            db.session.commit()
+            flash("Password reset successfully.", "success")
+            return redirect(url_for("admin.users"))
+        except SQLAlchemyError:
+            db.session.rollback()
+            flash("Database error. Please try again.", "error")
+            return render_template("admin/reset_password.html", user=target)
+
+    return render_template("admin/reset_password.html", user=target)
