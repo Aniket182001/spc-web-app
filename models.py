@@ -20,6 +20,11 @@ class User(UserMixin, db.Model):
     is_active = db.Column(db.Boolean, nullable=False, default=True)
     must_change_password = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
     is_deleted = db.Column(db.Boolean, nullable=False, default=False, server_default="false")
+    plan_name = db.Column(db.String(50), nullable=False, default="Free", server_default="Free")
+    monthly_chart_limit = db.Column(db.Integer, nullable=False, default=20, server_default="20")
+    charts_used_this_month = db.Column(db.Integer, nullable=False, default=0, server_default="0")
+    subscription_active = db.Column(db.Boolean, nullable=False, default=True, server_default="true")
+    subscription_expires_at = db.Column(db.DateTime, nullable=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
