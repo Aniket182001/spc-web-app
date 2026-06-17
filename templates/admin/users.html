@@ -234,7 +234,9 @@
   /* ── Action buttons ──────────────────────────────── */
   .btn-activate,
   .btn-deactivate,
-  .btn-reset {
+  .btn-reset,
+  .btn-delete,
+  .btn-restore {
     display: inline-flex;
     align-items: center;
     gap: 5px;
@@ -251,7 +253,9 @@
 
   .btn-activate:hover,
   .btn-deactivate:hover,
-  .btn-reset:hover {
+  .btn-reset:hover,
+  .btn-delete:hover,
+  .btn-restore:hover {
     opacity: 0.82;
     transform: translateY(-1px);
   }
@@ -274,6 +278,19 @@
     border-color: var(--info-border);
     text-decoration: none;
     margin-left: 6px;
+  }
+
+  .btn-delete {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+    margin-left: 6px;
+  }
+
+  .btn-restore {
+    color: var(--status-color);
+    background: var(--status-bg);
+    border-color: var(--status-border);
   }
 
   /* ── Flash messages ──────────────────────────────── */
@@ -335,6 +352,16 @@
     {% endif %}
   {% endwith %}
 
+  <!-- Filter bar -->
+  <div style="margin-bottom: 16px; text-align: right;">
+    <form method="get" action="{{ url_for('admin.users') }}">
+      <label style="font-size: 0.88rem; color: var(--text-secondary); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+        <input type="checkbox" name="show_archived" value="true" {% if show_archived %}checked{% endif %} onchange="this.form.submit()">
+        Show Archived Users
+      </label>
+    </form>
+  </div>
+
   <!-- Users card -->
   <div class="admin-card">
     {% if users %}
@@ -367,7 +394,9 @@
 
           <!-- Status -->
           <td>
-            {% if user.is_active %}
+            {% if user.is_deleted %}
+              <span class="status-pill inactive">Archived</span>
+            {% elif user.is_active %}
               <span class="status-pill active">Active</span>
             {% else %}
               <span class="status-pill inactive">Inactive</span>
@@ -377,15 +406,26 @@
           <!-- Action -->
           <td>
             {% if user.role != "admin" %}
-              <form action="{{ url_for('admin.toggle_status', user_id=user.id) }}" method="post" style="display:inline;">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                {% if user.is_active %}
-                  <button type="submit" class="btn-deactivate">Deactivate</button>
-                {% else %}
-                  <button type="submit" class="btn-activate">Activate</button>
-                {% endif %}
-              </form>
-              <a href="{{ url_for('admin.reset_password', user_id=user.id) }}" class="btn-reset">Reset Password</a>
+              {% if user.is_deleted %}
+                <form action="{{ url_for('admin.restore_user', user_id=user.id) }}" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-restore">Restore</button>
+                </form>
+              {% else %}
+                <form action="{{ url_for('admin.toggle_status', user_id=user.id) }}" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  {% if user.is_active %}
+                    <button type="submit" class="btn-deactivate">Deactivate</button>
+                  {% else %}
+                    <button type="submit" class="btn-activate">Activate</button>
+                  {% endif %}
+                </form>
+                <a href="{{ url_for('admin.reset_password', user_id=user.id) }}" class="btn-reset">Reset Password</a>
+                <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn-delete" onclick="return confirm('Are you sure you want to archive this user?');">Delete</button>
+                </form>
+              {% endif %}
             {% endif %}
           </td>
         </tr>
