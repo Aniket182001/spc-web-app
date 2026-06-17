@@ -195,6 +195,70 @@
     color: var(--text-muted);
     text-align: right;
   }
+
+  /* ── Action buttons ──────────────────────────────── */
+  .btn-activate,
+  .btn-deactivate {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 4px 14px;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: opacity 0.15s ease, transform 0.12s ease;
+  }
+
+  .btn-activate:hover,
+  .btn-deactivate:hover {
+    opacity: 0.82;
+    transform: translateY(-1px);
+  }
+
+  .btn-activate {
+    color: var(--status-color);
+    background: var(--status-bg);
+    border-color: var(--status-border);
+  }
+
+  .btn-deactivate {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+  }
+
+  /* ── Flash messages ──────────────────────────────── */
+  .flash-list {
+    list-style: none;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .flash-msg {
+    padding: 11px 16px;
+    border-radius: 10px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+  }
+
+  .flash-msg.success {
+    color: var(--status-color);
+    background: var(--status-bg);
+    border-color: var(--status-border);
+  }
+
+  .flash-msg.error {
+    color: var(--error-text);
+    background: var(--error-bg);
+    border-color: var(--error-border);
+  }
 </style>
 {% endblock %}
 
@@ -210,6 +274,17 @@
     <p>Manage SPC Tool users.</p>
   </div>
 
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <ul class="flash-list">
+        {% for category, message in messages %}
+          <li class="flash-msg {{ category }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+
   <!-- Users card -->
   <div class="admin-card">
     {% if users %}
@@ -219,6 +294,7 @@
           <th>Username</th>
           <th>Role</th>
           <th>Status</th>
+          <th>Action</th>
         </tr>
       </thead>
       <tbody>
@@ -245,6 +321,20 @@
               <span class="status-pill active">Active</span>
             {% else %}
               <span class="status-pill inactive">Inactive</span>
+            {% endif %}
+          </td>
+
+          <!-- Action -->
+          <td>
+            {% if user.role != "admin" %}
+              <form action="{{ url_for('admin.toggle_status', user_id=user.id) }}" method="post" style="display:inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                {% if user.is_active %}
+                  <button type="submit" class="btn-deactivate">Deactivate</button>
+                {% else %}
+                  <button type="submit" class="btn-activate">Activate</button>
+                {% endif %}
+              </form>
             {% endif %}
           </td>
         </tr>
