@@ -1430,6 +1430,26 @@
 
         <!-- ===== SIDEBAR / FORM ===== -->
         <aside class="sidebar">
+          {% if current_user.is_authenticated %}
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-header" style="padding: 14px 18px;">
+              <div>
+                <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
+                <div class="card-title" style="font-size: 1.05rem;">{{ current_user.plan_name }}</div>
+              </div>
+            </div>
+            <div class="card-body" style="padding: 14px 18px;">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
+                {% if current_user.monthly_chart_limit == -1 %}
+                  Unlimited
+                {% else %}
+                  <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.charts_used_this_month }} / {{ current_user.monthly_chart_limit }}</span> charts used
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
           <div class="card">
 
             <div class="card-header">

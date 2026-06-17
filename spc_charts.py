@@ -6,6 +6,7 @@ from flask import (
     send_from_directory
 )
 from flask_login import login_required, current_user
+from extensions import db
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
@@ -1851,6 +1852,10 @@ def upload_file():
     session["last_insight"] = insight
 
     os.remove(filepath)
+
+    if current_user.monthly_chart_limit != -1:
+        current_user.charts_used_this_month += 1
+        db.session.commit()
 
     return render_template(
         'index.html',
