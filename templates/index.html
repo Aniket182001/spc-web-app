@@ -1358,7 +1358,7 @@
 
           <div class="auth-controls">
             {% if current_user.is_authenticated %}
-              <span class="auth-user">{{ current_user.username }}</span>
+              <span class="auth-user">{% if current_user.role == "admin" %}👑 {% endif %}{{ current_user.username }}</span>
               <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="auth-link" style="cursor:pointer; font-family:inherit;">Logout</button>
