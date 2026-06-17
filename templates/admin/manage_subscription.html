@@ -195,31 +195,21 @@
       <div class="form-group">
         <label for="plan_name">Plan</label>
         <select id="plan_name" name="plan_name">
-          <option value="Free" {% if user.plan_name == 'Free' %}selected{% endif %}>Free</option>
-          <option value="Starter" {% if user.plan_name == 'Starter' %}selected{% endif %}>Starter</option>
-          <option value="Professional" {% if user.plan_name == 'Professional' %}selected{% endif %}>Professional</option>
-          <option value="Enterprise" {% if user.plan_name == 'Enterprise' %}selected{% endif %}>Enterprise</option>
+          <option value="Free" {% if user.plan_name == 'Free' %}selected{% endif %}>Free (Limit: 20)</option>
+          <option value="Starter" {% if user.plan_name == 'Starter' %}selected{% endif %}>Starter (Limit: 500)</option>
+          <option value="Professional" {% if user.plan_name == 'Professional' %}selected{% endif %}>Professional (Unlimited)</option>
         </select>
       </div>
 
-      <div class="form-group">
-        <label for="monthly_chart_limit">Monthly Chart Limit</label>
-        <input
-          id="monthly_chart_limit"
-          name="monthly_chart_limit"
-          type="number"
-          value="{{ user.monthly_chart_limit }}"
-          required
+      <div class="form-group" style="flex-direction: row; align-items: center; gap: 12px; margin-top: 10px; margin-bottom: 20px;">
+        <input 
+          type="checkbox" 
+          id="subscription_active" 
+          name="subscription_active" 
+          style="width: auto; box-shadow: none;"
+          {% if user.subscription_active %}checked{% endif %}
         >
-        <div class="help-text">Set to -1 for Unlimited. (Defaults: Free = 20, Starter = 500, Professional = -1, Enterprise = -1)</div>
-      </div>
-
-      <div class="form-group">
-        <label for="subscription_active">Subscription Active</label>
-        <select id="subscription_active" name="subscription_active">
-          <option value="true" {% if user.subscription_active %}selected{% endif %}>True</option>
-          <option value="false" {% if not user.subscription_active %}selected{% endif %}>False</option>
-        </select>
+        <label for="subscription_active" style="margin: 0; cursor: pointer;">Subscription Active</label>
       </div>
 
       <div class="form-group">
@@ -240,21 +230,4 @@
   </div>
 
 </div>
-
-<script>
-  // Add simple JS to auto-fill limits based on plan selection
-  const planSelect = document.getElementById('plan_name');
-  const limitInput = document.getElementById('monthly_chart_limit');
-
-  planSelect.addEventListener('change', function() {
-    const val = this.value;
-    if (val === 'Free') {
-      limitInput.value = '20';
-    } else if (val === 'Starter') {
-      limitInput.value = '500';
-    } else if (val === 'Professional' || val === 'Enterprise') {
-      limitInput.value = '-1';
-    }
-  });
-</script>
 {% endblock %}

@@ -206,19 +206,23 @@ def manage_subscription(user_id):
 
     if request.method == "POST":
         plan_name = request.form.get("plan_name", "Free")
-        monthly_chart_limit_str = request.form.get("monthly_chart_limit", "20")
-        subscription_active_str = request.form.get("subscription_active", "false")
+        subscription_active = request.form.get("subscription_active") == "on"
         expiry_date_str = request.form.get("subscription_expires_at", "")
 
         # ── Update Subscription ───────────────────────────
         target.plan_name = plan_name
         
-        try:
-            target.monthly_chart_limit = int(monthly_chart_limit_str)
-        except ValueError:
+        # Automatically assign limit based on plan
+        if plan_name == "Free":
+            target.monthly_chart_limit = 20
+        elif plan_name == "Starter":
+            target.monthly_chart_limit = 500
+        elif plan_name == "Professional":
+            target.monthly_chart_limit = -1
+        else:
             target.monthly_chart_limit = 20
 
-        target.subscription_active = (subscription_active_str.lower() == "true")
+        target.subscription_active = subscription_active
 
         if expiry_date_str:
             try:
