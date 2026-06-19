@@ -913,21 +913,16 @@ def upload_file():
 
     elif chart_type == "p_chart":
 
-        defectives = df.iloc[:, 0].values
-
-        if not sample_size_input:
+        if df.shape[1] < 2:
             return render_template(
                 'index.html',
-                insight="❌ Sample size is required for P Chart.",
+                insight="❌ P Chart requires two columns: Defectives and Sample Size.",
                 system_status="error",
                 selected_chart=chart_type
             )
-        sample_size = int(sample_size_input)
 
-        sample_sizes = np.full(
-            len(defectives),
-            sample_size
-        )
+        defectives = df.iloc[:, 0].values
+        sample_sizes = df.iloc[:, 1].values
 
         p_values = defectives / sample_sizes
 
@@ -1279,30 +1274,30 @@ def upload_file():
 
     elif chart_type == "u_chart":
 
-        defects = df.iloc[:, 0].values
-
-        if not sample_size_input:
+        if df.shape[1] < 2:
             return render_template(
                 'index.html',
-                insight="❌ Sample size is required for U Chart.",
+                insight="❌ U Chart requires two columns: Defects and Units Inspected.",
                 system_status="error",
                 selected_chart=chart_type
             )
-        sample_size = int(sample_size_input)
 
-        u_values = defects / sample_size
+        defects = df.iloc[:, 0].values
+        sample_sizes = df.iloc[:, 1].values
 
-        u_bar = np.mean(u_values)
+        u_values = defects / sample_sizes
+
+        u_bar = np.sum(defects) / np.sum(sample_sizes)
 
         UCL = u_bar + (
-            3 * np.sqrt(u_bar / sample_size)
+            3 * np.sqrt(u_bar / sample_sizes)
         )
 
         LCL = u_bar - (
-            3 * np.sqrt(u_bar / sample_size)
+            3 * np.sqrt(u_bar / sample_sizes)
         )
 
-        LCL = max(LCL, 0)
+        LCL = np.maximum(LCL, 0)
 
         out_u = (
             (u_values > UCL)
@@ -1376,18 +1371,30 @@ def upload_file():
             annotation_text=f"CL = {u_bar:.4f}"
         )
 
-        fig.add_hline(
-            y=UCL,
-            line_color='red',
-            line_dash='dash',
-            annotation_text=f"UCL = {UCL:.4f}"
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=UCL,
+                mode='lines',
+                name='UCL',
+                line=dict(
+                    color='red',
+                    dash='dash'
+                )
+            )
         )
 
-        fig.add_hline(
-            y=LCL,
-            line_color='red',
-            line_dash='dash',
-            annotation_text=f"LCL = {LCL:.4f}"
+        fig.add_trace(
+            go.Scatter(
+                x=subgroup_numbers,
+                y=LCL,
+                mode='lines',
+                name='LCL',
+                line=dict(
+                    color='red',
+                    dash='dash'
+                )
+            )
         )
 
     # =====================================================

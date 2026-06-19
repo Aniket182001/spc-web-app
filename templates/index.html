@@ -1495,6 +1495,9 @@
                       </div>
                     </div>
                   </div>
+                  <div id="two-column-instruction" style="display:none; color:var(--text-accent); font-size: 0.75rem; margin-top: 8px;">
+                    Note: Uploaded file must contain two columns: Column 1 for Defects/Defectives, Column 2 for Sample Size / Units Inspected.
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -1757,25 +1760,31 @@
 
     function toggleFields() {
       const chartType = chartSelect.value;
+      const twoColInstruction = document.getElementById("two-column-instruction");
 
-      if (chartType === "p_chart" || chartType === "np_chart") {
+      if (twoColInstruction) {
+        twoColInstruction.style.display = "none";
+      }
+
+      if (chartType === "np_chart") {
         sampleSizeContainer.style.display = "block";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
         sampleSizeInput.required = true;
+      } else if (chartType === "p_chart" || chartType === "u_chart") {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
+        subgroupInput.required = false;
+        sampleSizeInput.required = false;
+        if (twoColInstruction) twoColInstruction.style.display = "block";
       } else if (chartType === "c_chart") {
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
         sampleSizeInput.required = false;
-      } else if (chartType === "u_chart") {
-        sampleSizeContainer.style.display = "block";
-        subgroupContainer.style.display   = "none";
-        specLimitContainer.style.display  = "none";
-        subgroupInput.required = false;
-        sampleSizeInput.required = true;
       } else if (chartType === "imr_chart") {
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "none";
