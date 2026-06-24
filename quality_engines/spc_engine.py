@@ -8,6 +8,14 @@ from spc_constants import (
     B4_TABLE
 )
 
+def safe_float(value):
+    if value is None:
+        return None
+    value = str(value).strip()
+    if value == '':
+        return None
+    return float(value)
+
 def check_rule2(points, center_line):
     consecutive_above = 0
     consecutive_below = 0
@@ -64,10 +72,10 @@ def calculate_xbar_r(data, subgroup_size, usl_input=None, lsl_input=None):
 
     process_std = np.std(data, ddof=1)
 
-    if usl_input is not None and lsl_input is not None:
-        usl = float(usl_input)
-        lsl = float(lsl_input)
-    else:
+    usl = safe_float(usl_input)
+    lsl = safe_float(lsl_input)
+
+    if usl is None or lsl is None:
         usl = xbar_bar + (3 * process_std)
         lsl = xbar_bar - (3 * process_std)
 
@@ -126,10 +134,10 @@ def calculate_xbar_s(data, subgroup_size, usl_input=None, lsl_input=None):
 
     process_std = np.std(data, ddof=1)
 
-    if usl_input is not None and lsl_input is not None:
-        usl = float(usl_input)
-        lsl = float(lsl_input)
-    else:
+    usl = safe_float(usl_input)
+    lsl = safe_float(lsl_input)
+
+    if usl is None or lsl is None:
         usl = xbar_bar + (3 * process_std)
         lsl = xbar_bar - (3 * process_std)
 
@@ -243,10 +251,10 @@ def calculate_imr_chart(data, usl_input=None, lsl_input=None):
 
     process_std = np.std(data, ddof=1)
 
-    if usl_input is not None and lsl_input is not None:
-        usl = float(usl_input)
-        lsl = float(lsl_input)
-    else:
+    usl = safe_float(usl_input)
+    lsl = safe_float(lsl_input)
+
+    if usl is None or lsl is None:
         usl = x_bar + (3 * process_std)
         lsl = x_bar - (3 * process_std)
 
