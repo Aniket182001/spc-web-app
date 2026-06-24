@@ -229,7 +229,9 @@
 
             <hr>
 
-            {{ insight|safe }}
+            {% for message in insight_messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
 
         </div>
 

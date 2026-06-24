@@ -118,6 +118,15 @@ def capability_analysis():
     lsl = float(request.form.get('lsl'))
     usl = float(request.form.get('usl'))
 
+    if lsl >= usl:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        return render_template(
+            'capability.html',
+            insight="❌ LSL must be smaller than USL.",
+            system_status="error"
+        )
+
     # =========================
     # Capability Calculations
     # =========================
@@ -235,8 +244,6 @@ def capability_analysis():
         insight_messages.append(
             "✅ Process is properly centered"
         )
-
-    insight = "<br>".join(insight_messages)
 
     # =========================
     # Histogram + Normal Curve
@@ -380,7 +387,7 @@ def capability_analysis():
     return render_template(
         'capability.html',
         results=results,
-        insight=insight,
+        insight_messages=insight_messages,
         graph=graph_html,
         system_status="processing",
         report_url=report_url
