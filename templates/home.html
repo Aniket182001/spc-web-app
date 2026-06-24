@@ -1098,11 +1098,11 @@
         <polyline points="9 4 13 8 9 12"/>
       </svg>
     </a>
-    <a href="#supported-charts" class="btn-hero-secondary" id="hero-learn-more">
-      Learn More
+    <a href="{{ url_for('capability.capability_home') }}" class="btn-hero-secondary" id="hero-capability">
+      Capability Analysis
       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="8" y1="3" x2="8" y2="13"/>
-        <polyline points="4 9 8 13 12 9"/>
+        <line x1="3" y1="8" x2="13" y2="8"/>
+        <polyline points="9 4 13 8 9 12"/>
       </svg>
     </a>
   </div>
@@ -1351,6 +1351,38 @@
         <p>Tracks defects per unit when sample size varies.</p>
         <a href="{{ url_for('chart_info.chart_info_detail', chart_type='u-chart') }}" class="btn-know-more">
           Know More
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CAPABILITY TOOLS ─────────────────────────────── -->
+<section class="charts-section home-section" id="capability-tools">
+  <div class="charts-section-header">
+    <div class="home-section-eyebrow">Additional Analysis</div>
+    <h2 class="home-section-title">Process Capability Tools</h2>
+    <p class="home-section-subtitle">
+      Evaluate your process performance against specification limits.
+    </p>
+  </div>
+
+  <div class="charts-grid">
+    <!-- Capability Analysis -->
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-icon">
+          <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 13h12M4 10v3M8 6v7M12 4v9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h3>Capability Analysis</h3>
+      </div>
+      <div class="chart-card-body">
+        <p>Analyze process capability using Cp, Cpk, Pp and Ppk with histogram and PDF reports.</p>
+        <a href="{{ url_for('capability.capability_home') }}" class="btn-know-more">
+          Open Capability Analysis
           <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="8" x2="13" y2="8"/><polyline points="9 4 13 8 9 12"/></svg>
         </a>
       </div>
