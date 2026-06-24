@@ -598,19 +598,18 @@
       border-radius: 999px;
       border: 1px solid var(--border-default);
       color: var(--text-muted);
-      background: var(--bg-elevated);
+      background: transparent;
       letter-spacing: 0.04em;
       /* Smooth colour swap when selection changes */
       transition: background 0.22s ease, border-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
     }
 
-    /* Active / selected pill — electric blue with breathing dot, same
-       design language as the green READY badge in the header */
+    /* Active / selected pill — solid blue background with white text */
     .pill.pill--active {
-      background: rgba(37, 99, 235, 0.10);
-      border-color: rgba(37, 99, 235, 0.45);
-      color: var(--text-accent);
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+      background: var(--accent-primary);
+      border-color: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
       display: inline-flex;
       align-items: center;
       gap: 5px;
@@ -622,7 +621,7 @@
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background: var(--text-accent);
+      background: #ffffff;
       flex-shrink: 0;
       animation: pill-pulse 2s ease-in-out infinite;
     }
@@ -1407,6 +1406,11 @@
     <!-- ===== MAIN ===== -->
     <main>
 
+      <div class="app-tabs" style="display: flex; gap: 12px; padding: 1.5rem 2rem 0.5rem 2rem; justify-content: center; border-bottom: 1px solid var(--border-subtle);">
+        <button type="button" class="app-tab-btn active" data-tab="spc" style="padding: 10px 20px; font-weight: 600; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--accent-primary); background: var(--accent-primary); color: white; box-shadow: 0 2px 4px rgba(37,99,235,0.2); cursor: pointer; transition: all 0.2s ease;">SPC Charts</button>
+        <button type="button" class="app-tab-btn" data-tab="qc" style="padding: 10px 20px; font-weight: 600; font-size: 0.95rem; border-radius: 8px; border: 1px solid var(--border-default); background: transparent; color: var(--text-secondary); cursor: pointer; transition: all 0.2s ease;">Important QC Tools</button>
+      </div>
+
       <div class="page-hero">
         <div class="page-hero-left">
           <h2>Control Chart <span>Analysis</span></h2>
@@ -1416,13 +1420,20 @@
           </a>
         </div>
         <div class="chart-type-pills" aria-label="Supported chart types">
-          <span class="pill" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
-          <span class="pill" data-chart="xbar_s"><span class="pill-dot"></span>Xbar-S</span>
-          <span class="pill" data-chart="p_chart"><span class="pill-dot"></span>P</span>
-          <span class="pill" data-chart="np_chart"><span class="pill-dot"></span>NP</span>
-          <span class="pill" data-chart="c_chart"><span class="pill-dot"></span>C</span>
-          <span class="pill" data-chart="u_chart"><span class="pill-dot"></span>U</span>
-          <span class="pill" data-chart="imr_chart"><span class="pill-dot"></span>IMR</span>
+          <!-- SPC Pills -->
+          <span class="pill tab-spc" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
+          <span class="pill tab-spc" data-chart="xbar_s"><span class="pill-dot"></span>Xbar-S</span>
+          <span class="pill tab-spc" data-chart="imr_chart"><span class="pill-dot"></span>IMR</span>
+          <span class="pill tab-spc" data-chart="p_chart"><span class="pill-dot"></span>P</span>
+          <span class="pill tab-spc" data-chart="np_chart"><span class="pill-dot"></span>NP</span>
+          <span class="pill tab-spc" data-chart="c_chart"><span class="pill-dot"></span>C</span>
+          <span class="pill tab-spc" data-chart="u_chart"><span class="pill-dot"></span>U</span>
+          <!-- QC Pills -->
+          <span class="pill tab-qc" data-chart="histogram" style="display:none;"><span class="pill-dot"></span>Histogram</span>
+          <span class="pill tab-qc" data-chart="scatter" style="display:none;"><span class="pill-dot"></span>Scatter</span>
+          <span class="pill tab-qc" data-chart="box_plot" style="display:none;"><span class="pill-dot"></span>Box & Whisker Plot</span>
+          <span class="pill tab-qc" data-chart="pareto" style="display:none;"><span class="pill-dot"></span>Pareto</span>
+          <span class="pill tab-qc" data-chart="check_sheet" style="display:none;"><span class="pill-dot"></span>Check Sheet</span>
         </div>
       </div>
 
@@ -1478,9 +1489,9 @@
               <form action="{{ url_for('spc.upload_file') }}" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
 
-                <div class="form-section-label">Data Source</div>
+                <div id="upload-data-source-label" class="form-section-label">Data Source</div>
 
-                <div class="form-group">
+                <div id="upload-file-group" class="form-group">
                   <label for="file-input">Upload Data File</label>
                   <div class="file-upload-area">
                     <input type="file" name="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" required />
@@ -1500,7 +1511,7 @@
                   </div>
                 </div>
 
-                <div class="form-group">
+                <div id="upload-chart-name-group" class="form-group">
                   <label for="chart_name">Chart Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
                   <input type="text" name="chart_name" id="chart_name" placeholder="e.g. Daily Production Line A" />
                 </div>
@@ -1513,43 +1524,22 @@
                   <label for="chart-select">Chart Type</label>
                   <div class="select-wrapper">
                     <select name="chart" id="chart-select">
-
-                      <option value="xbar_r"
-                          {% if selected_chart|default('xbar_r') == "xbar_r" %}selected{% endif %}>
-                          Xbar-R Chart
-                      </option>
-
-                      <option value="xbar_s"
-                          {% if selected_chart == "xbar_s" %}selected{% endif %}>
-                          Xbar-S Chart
-                      </option>
-
-                      <option value="p_chart"
-                          {% if selected_chart == "p_chart" %}selected{% endif %}>
-                          P Chart
-                      </option>
-
-                      <option value="np_chart"
-                          {% if selected_chart == "np_chart" %}selected{% endif %}>
-                          NP Chart
-                      </option>
-
-                      <option value="c_chart"
-                          {% if selected_chart == "c_chart" %}selected{% endif %}>
-                          C Chart
-                      </option>
-
-                      <option value="u_chart"
-                          {% if selected_chart == "u_chart" %}selected{% endif %}>
-                          U Chart
-                      </option>
-
-                      <option value="imr_chart"
-                          {% if selected_chart == "imr_chart" %}selected{% endif %}>
-                          IMR Chart
-                      </option>
-
-                  </select>
+                      <!-- SPC Tools -->
+                      <option class="opt-spc" value="xbar_r" {% if selected_chart|default('xbar_r') == "xbar_r" %}selected{% endif %}>Xbar-R Chart</option>
+                      <option class="opt-spc" value="xbar_s" {% if selected_chart == "xbar_s" %}selected{% endif %}>Xbar-S Chart</option>
+                      <option class="opt-spc" value="imr_chart" {% if selected_chart == "imr_chart" %}selected{% endif %}>IMR Chart</option>
+                      <option class="opt-spc" value="p_chart" {% if selected_chart == "p_chart" %}selected{% endif %}>P Chart</option>
+                      <option class="opt-spc" value="np_chart" {% if selected_chart == "np_chart" %}selected{% endif %}>NP Chart</option>
+                      <option class="opt-spc" value="c_chart" {% if selected_chart == "c_chart" %}selected{% endif %}>C Chart</option>
+                      <option class="opt-spc" value="u_chart" {% if selected_chart == "u_chart" %}selected{% endif %}>U Chart</option>
+                      
+                      <!-- QC Tools -->
+                      <option class="opt-qc" value="histogram" {% if selected_chart == "histogram" %}selected{% endif %}>Histogram</option>
+                      <option class="opt-qc" value="scatter" {% if selected_chart == "scatter" %}selected{% endif %}>Scatter Diagram</option>
+                      <option class="opt-qc" value="box_plot" {% if selected_chart == "box_plot" %}selected{% endif %}>Box & Whisker Plot</option>
+                      <option class="opt-qc" value="pareto" {% if selected_chart == "pareto" %}selected{% endif %}>Pareto Chart</option>
+                      <option class="opt-qc" value="check_sheet" {% if selected_chart == "check_sheet" %}selected{% endif %}>Check Sheet</option>
+                    </select>
                   </div>
                 </div>
 
@@ -1578,12 +1568,13 @@
                   </div>
                 </div>
 
-                <button type="submit" class="btn-primary">
+                <button type="submit" id="generate-btn" class="btn-primary">
                   <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2 13L6 8l3 3 3-5 2-1" stroke-linecap="round" stroke-linejoin="round"/>
                   </svg>
                   Generate Control Chart
                 </button>
+
                 {% if graph %}
 
                 <a href="{{ url_for('spc.download_spc_report') }}" class="download-btn">
@@ -1646,7 +1637,7 @@
           </div>
 
           {% else %}
-          <div class="empty-state">
+          <div class="empty-state" id="empty-state-ui">
             <div class="empty-state-icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
                 <polyline points="3,17 8,12 12,14 17,7 21,10" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1672,6 +1663,33 @@
             </div>
           </div>
           {% endif %}
+
+          <!-- CHECK SHEET WORKSPACE -->
+          <div id="check-sheet-ui" style="display: none; height: 100%; flex-direction: column; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border-subtle); padding: 2rem;">
+            <div style="margin-bottom: 2rem; border-bottom: 1px solid var(--border-subtle); padding-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h2 style="margin: 0; font-size: 1.5rem; color: var(--text-primary);">Check Sheet</h2>
+                <p style="margin: 4px 0 0; color: var(--text-secondary);">Real-time manual data tallying</p>
+              </div>
+              <button type="button" id="add-counter-btn" style="padding: 0.75rem 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"></path></svg>
+                Add Counter
+              </button>
+            </div>
+            
+            <div id="check-sheet-counters" style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto;"></div>
+            
+            <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
+              <button type="button" id="export-csv-btn" style="padding: 0.75rem 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Export Excel (CSV)
+              </button>
+              <button type="button" id="export-pdf-btn" style="padding: 0.75rem 1.25rem; border: 1px solid var(--border-subtle); color: white; border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px; background-color: #EF4444;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Export PDF
+              </button>
+            </div>
+          </div>
 
         </section>
       </div>
@@ -1736,10 +1754,82 @@
       });
     }
 
+    /* ---- TABS LOGIC ---- */
+    const tabBtns = document.querySelectorAll(".app-tab-btn");
+    const chartSelect = document.getElementById("chart-select");
+    const allOpts = document.querySelectorAll("#chart-select option");
+
+    function switchTab(tabId) {
+      // Style tabs
+      tabBtns.forEach(btn => {
+        if (btn.dataset.tab === tabId) {
+          btn.classList.add("active");
+          btn.style.background = "var(--accent-primary)";
+          btn.style.color = "white";
+          btn.style.borderColor = "var(--accent-primary)";
+          btn.style.boxShadow = "0 2px 4px rgba(37,99,235,0.2)";
+        } else {
+          btn.classList.remove("active");
+          btn.style.background = "transparent";
+          btn.style.color = "var(--text-secondary)";
+          btn.style.borderColor = "var(--border-default)";
+          btn.style.boxShadow = "none";
+        }
+      });
+
+      // Filter pills
+      allPills.forEach(pill => {
+        if (pill.classList.contains(`tab-${tabId}`)) {
+          pill.style.display = "inline-flex";
+        } else {
+          pill.style.display = "none";
+        }
+      });
+
+      // Filter select options
+      let firstVisibleVal = null;
+      allOpts.forEach(opt => {
+        if (opt.classList.contains(`opt-${tabId}`)) {
+          opt.style.display = "";
+          if (!firstVisibleVal) firstVisibleVal = opt.value;
+        } else {
+          opt.style.display = "none";
+        }
+      });
+
+      // If current select value is not visible, select the first visible
+      const selectedOpt = chartSelect.querySelector(`option[value="${chartSelect.value}"]`);
+      if (!selectedOpt || selectedOpt.style.display === "none") {
+        chartSelect.value = firstVisibleVal;
+        chartSelect.dispatchEvent(new Event("change"));
+      }
+    }
+
+    tabBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        switchTab(btn.dataset.tab);
+      });
+    });
+
+    // Initialize tabs based on current chart value
+    const initialChartOpt = chartSelect.querySelector(`option[value="${chartSelect.value}"]`);
+    if (initialChartOpt && initialChartOpt.classList.contains("opt-qc")) {
+      switchTab("qc");
+    } else {
+      switchTab("spc");
+    }
+
+    allPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        const chartValue = pill.dataset.chart;
+        chartSelect.value = chartValue;
+        chartSelect.dispatchEvent(new Event("change"));
+      });
+    });
+
     /* ---- ORIGINAL FORM TOGGLE LOGIC — PRESERVED INTACT ---- */
     const subgroupInput       = document.getElementById("subgroup-input");
     const sampleSizeInput     = document.getElementById("sample_size");
-    const chartSelect         = document.getElementById("chart-select");
     const subgroupContainer   = document.getElementById("subgroup-container");
     const sampleSizeContainer = document.getElementById("sample-size-container");
     const specLimitContainer  = document.getElementById("spec-limit-container");
@@ -1761,9 +1851,33 @@
     function toggleFields() {
       const chartType = chartSelect.value;
       const twoColInstruction = document.getElementById("two-column-instruction");
+      const uploadDataSourceLabel = document.getElementById("upload-data-source-label");
+      const uploadFileGroup = document.getElementById("upload-file-group");
+      const uploadChartNameGroup = document.getElementById("upload-chart-name-group");
+      const generateBtn = document.getElementById("generate-btn");
+      const checkSheetUI = document.getElementById("check-sheet-ui");
+      const emptyStateUI = document.getElementById("empty-state-ui");
+      
+      const elementsToToggle = [uploadDataSourceLabel, uploadFileGroup, uploadChartNameGroup, generateBtn];
 
       if (twoColInstruction) {
         twoColInstruction.style.display = "none";
+      }
+
+      if (chartType === "check_sheet") {
+        elementsToToggle.forEach(el => { if(el) el.style.display = "none"; });
+        if (checkSheetUI) checkSheetUI.style.display = "flex";
+        if (emptyStateUI) emptyStateUI.style.display = "none";
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
+        subgroupInput.required = false;
+        sampleSizeInput.required = false;
+        return;
+      } else {
+        elementsToToggle.forEach(el => { if(el) el.style.display = ""; });
+        if (checkSheetUI) checkSheetUI.style.display = "none";
+        if (emptyStateUI) emptyStateUI.style.display = "";
       }
 
       if (chartType === "np_chart") {
@@ -1789,6 +1903,18 @@
         sampleSizeContainer.style.display = "none";
         subgroupContainer.style.display   = "none";
         specLimitContainer.style.display  = "block";
+        subgroupInput.required = false;
+        sampleSizeInput.required = false;
+      } else if (chartType === "histogram") {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "block";
+        subgroupInput.required = false;
+        sampleSizeInput.required = false;
+      } else if (chartType === "scatter" || chartType === "box_plot" || chartType === "pareto") {
+        sampleSizeContainer.style.display = "none";
+        subgroupContainer.style.display   = "none";
+        specLimitContainer.style.display  = "none";
         subgroupInput.required = false;
         sampleSizeInput.required = false;
       } else {
@@ -1826,6 +1952,171 @@
         }
       });
     }
+
+    /* ---- CHECK SHEET APP ---- */
+    (function CheckSheetApp() {
+      const addCounterBtn = document.getElementById('add-counter-btn');
+      const container = document.getElementById('check-sheet-counters');
+      if (!addCounterBtn || !container) return;
+
+      let counters = [];
+      let counterIdCounter = 0;
+
+      function render() {
+        container.innerHTML = '';
+        counters.forEach((c) => {
+          const row = document.createElement('div');
+          row.style.display = 'flex';
+          row.style.alignItems = 'center';
+          row.style.gap = '8px';
+          row.style.background = 'var(--bg-secondary)';
+          row.style.padding = '0.5rem';
+          row.style.borderRadius = '6px';
+          row.style.border = '1px solid var(--border-subtle)';
+
+          const nameInput = document.createElement('input');
+          nameInput.type = 'text';
+          nameInput.value = c.name;
+          nameInput.style.flex = '1';
+          nameInput.style.minWidth = '0';
+          nameInput.style.border = '1px solid var(--border-subtle)';
+          nameInput.style.padding = '4px 8px';
+          nameInput.style.borderRadius = '4px';
+          nameInput.style.background = 'var(--bg-card)';
+          nameInput.style.color = 'var(--text-primary)';
+          nameInput.onchange = (e) => { c.name = e.target.value; };
+
+          const countDisplay = document.createElement('div');
+          countDisplay.textContent = c.count;
+          countDisplay.style.fontWeight = '600';
+          countDisplay.style.width = '30px';
+          countDisplay.style.textAlign = 'center';
+          countDisplay.style.fontSize = '1.1rem';
+
+          const btnStyle = 'width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:1px solid var(--border-subtle); border-radius:4px; background:var(--bg-card); cursor:pointer; color:var(--text-primary); font-weight:bold;';
+
+          const minusBtn = document.createElement('button');
+          minusBtn.type = 'button';
+          minusBtn.textContent = '-';
+          minusBtn.style.cssText = btnStyle;
+          minusBtn.onclick = () => {
+            if (c.count > 0) {
+              c.count--;
+              countDisplay.textContent = c.count;
+            }
+          };
+
+          const plusBtn = document.createElement('button');
+          plusBtn.type = 'button';
+          plusBtn.textContent = '+';
+          plusBtn.style.cssText = btnStyle;
+          plusBtn.onclick = () => {
+            c.count++;
+            countDisplay.textContent = c.count;
+          };
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg>';
+          delBtn.style.cssText = btnStyle + 'color:var(--out-of-control-color, #ef4444); border-color:transparent; background:transparent;';
+          delBtn.onclick = () => {
+            counters = counters.filter(x => x.id !== c.id);
+            render();
+          };
+
+          row.appendChild(nameInput);
+          row.appendChild(minusBtn);
+          row.appendChild(countDisplay);
+          row.appendChild(plusBtn);
+          row.appendChild(delBtn);
+
+          container.appendChild(row);
+        });
+      }
+
+      addCounterBtn.addEventListener('click', () => {
+        counters.push({
+          id: counterIdCounter++,
+          name: 'Defect ' + (counters.length + 1),
+          count: 0
+        });
+        render();
+      });
+
+      // Add one default counter immediately
+      if(counters.length === 0) {
+          addCounterBtn.click();
+      }
+
+      /* Export Logic */
+      const exportCsvBtn = document.getElementById('export-csv-btn');
+      const exportPdfBtn = document.getElementById('export-pdf-btn');
+
+      if (exportCsvBtn) {
+        exportCsvBtn.addEventListener('click', () => {
+          if (counters.length === 0) return;
+          const csvRows = [];
+          // Add header optionally, but example required just Name,Count without headers. We can provide headers or just raw data.
+          // Let's provide standard CSV headers.
+          csvRows.push('Counter Name,Count');
+          counters.forEach(c => {
+            // Escape quotes and wrap in quotes to safely handle names with commas
+            const safeName = '"' + c.name.replace(/"/g, '""') + '"';
+            csvRows.push(`${safeName},${c.count}`);
+          });
+          const csvString = csvRows.join('\n');
+          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.setAttribute("href", url);
+          link.setAttribute("download", "check_sheet_data.csv");
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        });
+      }
+
+      if (exportPdfBtn) {
+        exportPdfBtn.addEventListener('click', async () => {
+          if (counters.length === 0) return;
+          
+          exportPdfBtn.disabled = true;
+          exportPdfBtn.style.opacity = '0.7';
+          const originalText = exportPdfBtn.innerHTML;
+          exportPdfBtn.innerHTML = 'Generating...';
+
+          try {
+            const response = await fetch('/export_check_sheet_pdf', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('input[name="csrf_token"]')?.value || ''
+              },
+              body: JSON.stringify({ counters: counters })
+            });
+
+            if (!response.ok) throw new Error('Failed to generate PDF');
+
+            const blob = await response.blob();
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", "check_sheet_report.pdf");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } catch (e) {
+            console.error('PDF Export Error:', e);
+            alert('Failed to generate PDF report.');
+          } finally {
+            exportPdfBtn.disabled = false;
+            exportPdfBtn.style.opacity = '1';
+            exportPdfBtn.innerHTML = originalText;
+          }
+        });
+      }
+
+    })();
   </script>
 
 </body>

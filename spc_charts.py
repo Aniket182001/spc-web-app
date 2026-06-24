@@ -3,7 +3,9 @@ from flask import (
     render_template,
     request,
     session,
-    send_from_directory
+    send_from_directory,
+    send_file,
+    jsonify
 )
 from flask_login import login_required, current_user
 from extensions import db
@@ -17,15 +19,19 @@ from datetime import datetime
 
 from utils import allowed_file
 from werkzeug.utils import secure_filename
-from spc_pdf_generator import generate_spc_pdf
+from spc_pdf_generator import generate_spc_pdf, generate_check_sheet_pdf
 
-from spc_constants import (
-    A2_TABLE,
-    D3_TABLE,
-    D4_TABLE,
-    A3_TABLE,
-    B3_TABLE,
-    B4_TABLE
+from spc_constants import A2_TABLE, A3_TABLE
+from quality_engines.basic_qc_engine import calculate_histogram, calculate_scatter, calculate_boxplot
+from quality_engines.spc_engine import (
+    check_rule2,
+    calculate_xbar_r,
+    calculate_xbar_s,
+    calculate_p_chart,
+    calculate_np_chart,
+    calculate_c_chart,
+    calculate_u_chart,
+    calculate_imr_chart
 )
 
 # =========================================================
@@ -40,47 +46,6 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_BASE = os.path.join(BASE_DIR, 'uploads')
 CHARTS_BASE = os.path.join(BASE_DIR, 'static', 'charts')
 REPORTS_BASE = os.path.join(BASE_DIR, 'static', 'reports')
-
-# =========================================================
-# WESTERN ELECTRIC RULE 2
-# =========================================================
-
-def check_rule2(points, center_line):
-
-    consecutive_above = 0
-    consecutive_below = 0
-
-    for point in points:
-
-        if point > center_line:
-
-            consecutive_above += 1
-            consecutive_below = 0
-
-        elif point < center_line:
-
-            consecutive_below += 1
-            consecutive_above = 0
-
-        else:
-
-            consecutive_above = 0
-            consecutive_below = 0
-
-        if consecutive_above >= 7:
-            return True, (
-                "⚠️ Western Electric Rule 2 triggered: "
-                "7 consecutive points above center line"
-            )
-
-        if consecutive_below >= 7:
-            return True, (
-                "⚠️ Western Electric Rule 2 triggered: "
-                "7 consecutive points below center line"
-            )
-
-    return False, None
-
 
 # =========================================================
 # DASHBOARD ROUTE
@@ -308,42 +273,7 @@ def upload_file():
                 selected_chart=chart_type
             )
 
-        total_points = len(data)
-
-        remainder = total_points % subgroup_size
-
-        dropped_points = 0
-        dropped_values = []
-
-        if remainder != 0:
-
-            dropped_points = remainder
-
-            dropped_values = data[-remainder:]
-
-            usable_length = total_points - remainder
-
-            data = data[:usable_length]
-
-        subgroups = data.reshape(
-            -1,
-            subgroup_size
-        )
-
-        n = subgroup_size
-
-        if dropped_points > 0:
-
-            clean_values = [int(x) for x in dropped_values]
-
-            warning = (
-                f"⚠️ Last {dropped_points} point(s) "
-                f"were excluded: {clean_values} "
-                f"to form complete subgroups"
-            )
-
-        if n not in A2_TABLE:
-
+        if subgroup_size not in A2_TABLE:
             return render_template(
                 'index.html',
                 insight="❌ Unsupported subgroup size for Xbar-R",
@@ -351,60 +281,31 @@ def upload_file():
                 selected_chart=chart_type
             )
 
-        # -------------------------------------------------
-        # CALCULATIONS
-        # -------------------------------------------------
+        results = calculate_xbar_r(data, subgroup_size, usl_input, lsl_input)
 
-        xbar = np.mean(subgroups, axis=1)
+        xbar = results['xbar']
+        R = results['R']
+        xbar_bar = results['xbar_bar']
+        R_bar = results['R_bar']
+        UCL_xbar = results['UCL_xbar']
+        LCL_xbar = results['LCL_xbar']
+        UCL_R = results['UCL_R']
+        LCL_R = results['LCL_R']
+        usl = results['usl']
+        lsl = results['lsl']
+        out_x = results['out_x']
+        out_r = results['out_r']
+        n = results['n']
+        dropped_points = results['dropped_points']
+        dropped_values = results['dropped_values']
 
-        R = (
-            np.max(subgroups, axis=1)
-            - np.min(subgroups, axis=1)
-        )
-
-        xbar_bar = np.mean(xbar)
-
-        R_bar = np.mean(R)
-
-        A2 = A2_TABLE[n]
-        D3 = D3_TABLE[n]
-        D4 = D4_TABLE[n]
-
-        UCL_xbar = xbar_bar + (A2 * R_bar)
-        LCL_xbar = xbar_bar - (A2 * R_bar)
-
-        UCL_R = D4 * R_bar
-        LCL_R = D3 * R_bar
-
-        # -------------------------------------------------
-        # USL / LSL
-        # -------------------------------------------------
-
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            usl = float(usl_input)
-            lsl = float(lsl_input)
-
-        else:
-
-            usl = xbar_bar + (3 * process_std)
-            lsl = xbar_bar - (3 * process_std)
-
-        # -------------------------------------------------
-        # OUT OF CONTROL
-        # -------------------------------------------------
-
-        out_x = (
-            (xbar > UCL_xbar)
-            | (xbar < LCL_xbar)
-        )
-
-        out_r = (
-            (R > UCL_R)
-            | (R < LCL_R)
-        )
+        if dropped_points > 0:
+            clean_values = [int(x) for x in dropped_values]
+            warning = (
+                f"⚠️ Last {dropped_points} point(s) "
+                f"were excluded: {clean_values} "
+                f"to form complete subgroups"
+            )
 
         # -------------------------------------------------
         # INSIGHTS
@@ -615,42 +516,7 @@ def upload_file():
                 selected_chart=chart_type
             )
 
-        total_points = len(data)
-
-        remainder = total_points % subgroup_size
-
-        dropped_points = 0
-        dropped_values = []
-
-        if remainder != 0:
-
-            dropped_points = remainder
-
-            dropped_values = data[-remainder:]
-
-            usable_length = total_points - remainder
-
-            data = data[:usable_length]
-
-        subgroups = data.reshape(
-            -1,
-            subgroup_size
-        )
-
-        n = subgroup_size
-
-        if dropped_points > 0:
-
-            clean_values = [int(x) for x in dropped_values]
-
-            warning = (
-                f"⚠️ Last {dropped_points} point(s) "
-                f"were excluded: {clean_values} "
-                f"to form complete subgroups"
-            )
-
-        if n not in A3_TABLE:
-
+        if subgroup_size not in A3_TABLE:
             return render_template(
                 'index.html',
                 insight="❌ Unsupported subgroup size for Xbar-S",
@@ -658,61 +524,31 @@ def upload_file():
                 selected_chart=chart_type
             )
 
-        # -------------------------------------------------
-        # CALCULATIONS
-        # -------------------------------------------------
+        results = calculate_xbar_s(data, subgroup_size, usl_input, lsl_input)
 
-        xbar = np.mean(subgroups, axis=1)
+        xbar = results['xbar']
+        S = results['S']
+        xbar_bar = results['xbar_bar']
+        S_bar = results['S_bar']
+        UCL_xbar = results['UCL_xbar']
+        LCL_xbar = results['LCL_xbar']
+        UCL_S = results['UCL_S']
+        LCL_S = results['LCL_S']
+        usl = results['usl']
+        lsl = results['lsl']
+        out_x = results['out_x']
+        out_s = results['out_s']
+        n = results['n']
+        dropped_points = results['dropped_points']
+        dropped_values = results['dropped_values']
 
-        S = np.std(
-            subgroups,
-            axis=1,
-            ddof=1
-        )
-
-        xbar_bar = np.mean(xbar)
-
-        S_bar = np.mean(S)
-
-        A3 = A3_TABLE[n]
-        B3 = B3_TABLE[n]
-        B4 = B4_TABLE[n]
-
-        UCL_xbar = xbar_bar + (A3 * S_bar)
-        LCL_xbar = xbar_bar - (A3 * S_bar)
-
-        UCL_S = B4 * S_bar
-        LCL_S = B3 * S_bar
-
-        # -------------------------------------------------
-        # USL / LSL
-        # -------------------------------------------------
-
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            usl = float(usl_input)
-            lsl = float(lsl_input)
-
-        else:
-
-            usl = xbar_bar + (3 * process_std)
-            lsl = xbar_bar - (3 * process_std)
-
-        # -------------------------------------------------
-        # OUT OF CONTROL
-        # -------------------------------------------------
-
-        out_x = (
-            (xbar > UCL_xbar)
-            | (xbar < LCL_xbar)
-        )
-
-        out_s = (
-            (S > UCL_S)
-            | (S < LCL_S)
-        )
+        if dropped_points > 0:
+            clean_values = [int(x) for x in dropped_values]
+            warning = (
+                f"⚠️ Last {dropped_points} point(s) "
+                f"were excluded: {clean_values} "
+                f"to form complete subgroups"
+            )
 
         # -------------------------------------------------
         # INSIGHTS
@@ -924,33 +760,13 @@ def upload_file():
         defectives = df.iloc[:, 0].values
         sample_sizes = df.iloc[:, 1].values
 
-        p_values = defectives / sample_sizes
+        results = calculate_p_chart(defectives, sample_sizes)
 
-        p_bar = (
-            np.sum(defectives)
-            / np.sum(sample_sizes)
-        )
-
-        UCL = p_bar + (
-            3 * np.sqrt(
-                (p_bar * (1 - p_bar))
-                / sample_sizes
-            )
-        )
-
-        LCL = p_bar - (
-            3 * np.sqrt(
-                (p_bar * (1 - p_bar))
-                / sample_sizes
-            )
-        )
-
-        LCL = np.maximum(LCL, 0)
-
-        out_p = (
-            (p_values > UCL)
-            | (p_values < LCL)
-        )
+        p_values = results['p_values']
+        p_bar = results['p_bar']
+        UCL = results['UCL']
+        LCL = results['LCL']
+        out_p = results['out_p']
 
         subgroup_numbers = list(
             range(1, len(p_values) + 1)
@@ -1064,26 +880,13 @@ def upload_file():
             )
         sample_size = int(sample_size_input)
 
-        p_bar = np.mean(defectives) / sample_size
+        results = calculate_np_chart(defectives, sample_size)
 
-        np_values = defectives
-
-        CL = sample_size * p_bar
-
-        sigma = np.sqrt(
-            sample_size * p_bar * (1 - p_bar)
-        )
-
-        UCL = CL + (3 * sigma)
-
-        LCL = CL - (3 * sigma)
-
-        LCL = max(LCL, 0)
-
-        out_np = (
-            (np_values > UCL)
-            | (np_values < LCL)
-        )
+        np_values = results['np_values']
+        CL = results['CL']
+        UCL = results['UCL']
+        LCL = results['LCL']
+        out_np = results['out_np']
 
         subgroup_numbers = list(
             range(1, len(np_values) + 1)
@@ -1174,18 +977,12 @@ def upload_file():
 
         c_values = df.iloc[:, 0].values
 
-        c_bar = np.mean(c_values)
+        results = calculate_c_chart(c_values)
 
-        UCL = c_bar + (3 * np.sqrt(c_bar))
-
-        LCL = c_bar - (3 * np.sqrt(c_bar))
-
-        LCL = max(LCL, 0)
-
-        out_c = (
-            (c_values > UCL)
-            | (c_values < LCL)
-        )
+        c_bar = results['c_bar']
+        UCL = results['UCL']
+        LCL = results['LCL']
+        out_c = results['out_c']
 
         subgroup_numbers = list(
             range(1, len(c_values) + 1)
@@ -1285,24 +1082,13 @@ def upload_file():
         defects = df.iloc[:, 0].values
         sample_sizes = df.iloc[:, 1].values
 
-        u_values = defects / sample_sizes
+        results = calculate_u_chart(defects, sample_sizes)
 
-        u_bar = np.sum(defects) / np.sum(sample_sizes)
-
-        UCL = u_bar + (
-            3 * np.sqrt(u_bar / sample_sizes)
-        )
-
-        LCL = u_bar - (
-            3 * np.sqrt(u_bar / sample_sizes)
-        )
-
-        LCL = np.maximum(LCL, 0)
-
-        out_u = (
-            (u_values > UCL)
-            | (u_values < LCL)
-        )
+        u_values = results['u_values']
+        u_bar = results['u_bar']
+        UCL = results['UCL']
+        LCL = results['LCL']
+        out_u = results['out_u']
 
         subgroup_numbers = list(
             range(1, len(u_values) + 1)
@@ -1414,63 +1200,20 @@ def upload_file():
                 selected_chart=chart_type
             )
 
-        # -------------------------------------------------
-        # CALCULATIONS
-        # -------------------------------------------------
+        results = calculate_imr_chart(data, usl_input, lsl_input)
 
-        individual_values = data
-
-        moving_ranges = np.abs(
-            np.diff(individual_values)
-        )
-
-        x_bar = np.mean(individual_values)
-
-        mr_bar = np.mean(moving_ranges)
-
-        # Individuals chart limits
-
-        UCL_X = x_bar + (2.66 * mr_bar)
-
-        LCL_X = x_bar - (2.66 * mr_bar)
-
-        # Moving range chart limits
-
-        UCL_MR = 3.267 * mr_bar
-
-        LCL_MR = 0
-
-        # -------------------------------------------------
-        # USL / LSL
-        # -------------------------------------------------
-
-        process_std = np.std(data, ddof=1)
-
-        if usl_input and lsl_input:
-
-            usl = float(usl_input)
-
-            lsl = float(lsl_input)
-
-        else:
-
-            usl = x_bar + (3 * process_std)
-
-            lsl = x_bar - (3 * process_std)
-
-        # -------------------------------------------------
-        # OUT OF CONTROL
-        # -------------------------------------------------
-
-        out_x = (
-            (individual_values > UCL_X)
-            | (individual_values < LCL_X)
-        )
-
-        out_mr = (
-            (moving_ranges > UCL_MR)
-            | (moving_ranges < LCL_MR)
-        )
+        individual_values = results['individual_values']
+        moving_ranges = results['moving_ranges']
+        x_bar = results['x_bar']
+        mr_bar = results['mr_bar']
+        UCL_X = results['UCL_X']
+        LCL_X = results['LCL_X']
+        UCL_MR = results['UCL_MR']
+        LCL_MR = results['LCL_MR']
+        usl = results['usl']
+        lsl = results['lsl']
+        out_x = results['out_x']
+        out_mr = results['out_mr']
 
         # -------------------------------------------------
         # INSIGHTS
@@ -1660,6 +1403,260 @@ def upload_file():
             col=1
         )
 
+    # =====================================================
+    # HISTOGRAM
+    # =====================================================
+
+    elif chart_type == "histogram":
+
+        data = df.iloc[:, 0].values
+
+        if not np.issubdtype(data.dtype, np.number):
+            try:
+                data = pd.to_numeric(data, errors='coerce')
+            except Exception:
+                pass
+
+        results = calculate_histogram(data)
+
+        if not results:
+            return render_template(
+                'index.html',
+                insight="❌ Histogram requires numeric data.",
+                system_status="error",
+                selected_chart=chart_type
+            )
+
+        clean_data = results['data']
+        count = results['count']
+        mean = results['mean']
+        std_dev = results['std_dev']
+        min_val = results['min']
+        max_val = results['max']
+
+        # INSIGHTS
+        analysis_messages = [
+            "✅ Histogram generated successfully",
+            f"ℹ️ Valid numeric observations: {count}",
+            f"ℹ️ Mean: {mean:.4f} | Std Dev: {std_dev:.4f}",
+            f"ℹ️ Range: [{min_val:.4f}, {max_val:.4f}]"
+        ]
+        insight = "<br>".join(analysis_messages)
+
+        # PLOT
+        fig = go.Figure()
+        chart_title = f"{chart_name} - Histogram" if chart_name else "Histogram"
+        
+        fig.add_trace(
+            go.Histogram(
+                x=clean_data,
+                name='Frequency',
+                marker_color='#3B82F6',
+                opacity=0.85
+            )
+        )
+
+    # =====================================================
+    # SCATTER DIAGRAM
+    # =====================================================
+
+    elif chart_type == "scatter":
+
+        if df.shape[1] < 2:
+            return render_template(
+                'index.html',
+                insight="❌ Scatter Diagram requires at least two columns of data.",
+                system_status="error",
+                selected_chart=chart_type
+            )
+
+        x_raw = df.iloc[:, 0].values
+        y_raw = df.iloc[:, 1].values
+
+        if not np.issubdtype(x_raw.dtype, np.number):
+            try:
+                x_raw = pd.to_numeric(x_raw, errors='coerce')
+            except:
+                pass
+        
+        if not np.issubdtype(y_raw.dtype, np.number):
+            try:
+                y_raw = pd.to_numeric(y_raw, errors='coerce')
+            except:
+                pass
+
+        results = calculate_scatter(x_raw, y_raw)
+
+        if not results:
+            return render_template(
+                'index.html',
+                insight="❌ Scatter Diagram requires valid numeric data in both columns.",
+                system_status="error",
+                selected_chart=chart_type
+            )
+
+        clean_x = results['x']
+        clean_y = results['y']
+        count = results['count']
+        correlation = results['correlation']
+        x_min = results['x_min']
+        x_max = results['x_max']
+        y_min = results['y_min']
+        y_max = results['y_max']
+
+        # INSIGHTS
+        analysis_messages = [
+            "✅ Scatter Diagram generated successfully",
+            f"ℹ️ Valid pairs: {count}",
+            f"ℹ️ Pearson Correlation (r): {correlation:.4f}",
+            f"ℹ️ X Range: [{x_min:.4f}, {x_max:.4f}]",
+            f"ℹ️ Y Range: [{y_min:.4f}, {y_max:.4f}]"
+        ]
+        insight = "<br>".join(analysis_messages)
+
+        # PLOT
+        fig = go.Figure()
+        chart_title = f"{chart_name} - Scatter Diagram" if chart_name else "Scatter Diagram"
+        
+        fig.add_trace(
+            go.Scatter(
+                x=clean_x,
+                y=clean_y,
+                mode='markers',
+                name='Data Points',
+                marker=dict(
+                    color='#3B82F6',
+                    size=8,
+                    line=dict(color='white', width=1)
+                )
+            )
+        )
+
+        fig.update_xaxes(title_text=df.columns[0])
+        fig.update_yaxes(title_text=df.columns[1])
+
+    # =====================================================
+    # BOX PLOT
+    # =====================================================
+
+    elif chart_type == "box_plot":
+
+        data = df.iloc[:, 0].values
+
+        if not np.issubdtype(data.dtype, np.number):
+            try:
+                data = pd.to_numeric(data, errors='coerce')
+            except Exception:
+                pass
+
+        results = calculate_boxplot(data)
+
+        if not results:
+            return render_template(
+                'index.html',
+                insight="❌ Box Plot requires numeric data.",
+                system_status="error",
+                selected_chart=chart_type
+            )
+
+        clean_data = results['data']
+        count = results['count']
+        median = results['median']
+        iqr = results['iqr']
+        outlier_count = results['outlier_count']
+
+        # INSIGHTS
+        analysis_messages = [
+            "✅ Box Plot generated successfully",
+            f"ℹ️ Valid numeric observations: {count}",
+            f"ℹ️ Median: {median:.4f} | IQR: {iqr:.4f}",
+            f"⚠️ Potential Outliers: {outlier_count}" if outlier_count > 0 else "✅ No extreme outliers detected."
+        ]
+        insight = "<br>".join(analysis_messages)
+
+        # PLOT
+        fig = go.Figure()
+        chart_title = f"{chart_name} - Box Plot" if chart_name else "Box Plot"
+        
+        fig.add_trace(
+            go.Box(
+                y=clean_data,
+                name='Distribution',
+                marker_color='#3B82F6',
+                boxpoints='outliers'
+            )
+        )
+
+    # =====================================================
+    # PARETO CHART
+    # =====================================================
+
+    elif chart_type == "pareto":
+
+        results = calculate_pareto(df)
+
+        if not results:
+            return render_template(
+                'index.html',
+                insight="❌ Pareto Chart requires valid categorical data (or category-frequency pairs).",
+                system_status="error",
+                selected_chart=chart_type
+            )
+
+        categories = results['categories']
+        frequencies = results['frequencies']
+        cum_pct = results['cum_pct']
+        total_count = results['total_count']
+        num_categories = len(categories)
+
+        # INSIGHTS
+        top_80 = [c for c, p in zip(categories, cum_pct) if p <= 80]
+        if not top_80 and cum_pct:
+            top_80 = [categories[0]]
+            
+        analysis_messages = [
+            "✅ Pareto Chart generated successfully",
+            f"ℹ️ Total Data Points/Frequency: {total_count}",
+            f"ℹ️ Number of Categories: {num_categories}",
+            f"⚠️ 'Vital Few' (Top ~80%): {', '.join(top_80)}"
+        ]
+        insight = "<br>".join(analysis_messages)
+
+        # PLOT
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        chart_title = f"{chart_name} - Pareto Chart" if chart_name else "Pareto Chart"
+        
+        fig.add_trace(
+            go.Bar(
+                x=categories,
+                y=frequencies,
+                name='Frequency',
+                marker_color='#3B82F6',
+                opacity=0.85
+            ),
+            secondary_y=False
+        )
+
+        fig.add_trace(
+            go.Scatter(
+                x=categories,
+                y=cum_pct,
+                name='Cumulative %',
+                mode='lines+markers',
+                line=dict(color='#F59E0B', width=3),
+                marker=dict(color='#F59E0B', size=8)
+            ),
+            secondary_y=True
+        )
+
+        fig.update_yaxes(title_text="Frequency", secondary_y=False)
+        fig.update_yaxes(
+            title_text="Cumulative %", 
+            range=[0, 105], 
+            secondary_y=True,
+            showgrid=False
+        )
+
     # -------------------------------------------------
     # End Block - No more chart types below this point
     # -------------------------------------------------
@@ -1676,7 +1673,7 @@ def upload_file():
     # DETECT SINGLE vs DUAL CHART
     # =====================================================
 
-    SINGLE_CHART_TYPES = {'p_chart', 'np_chart', 'c_chart', 'u_chart'}
+    SINGLE_CHART_TYPES = {'p_chart', 'np_chart', 'c_chart', 'u_chart', 'histogram', 'scatter', 'box_plot', 'pareto'}
     is_single_chart = chart_type in SINGLE_CHART_TYPES
 
     # =====================================================
@@ -1707,19 +1704,25 @@ def upload_file():
 
     # ── Re-style every trace  ────────────────────────
     for trace in fig.data:
-        # Data lines
-        trace.line.color = CLR_DATA_LINE
-        trace.line.width = 2
-        # Marker colours: keep red for OOC, upgrade in-control to brand blue
-        if hasattr(trace, 'marker') and trace.marker.color is not None:
-            colours = trace.marker.color
-            if isinstance(colours, list):
-                trace.marker.color = [
-                    CLR_OOC if c in ('red', '#EF4444') else CLR_DATA
-                    for c in colours
-                ]
-            trace.marker.size = 7
-            trace.marker.line = dict(color=CLR_PAPER, width=1.5)
+        # Only restyle lines/markers if trace is a Scatter plot, skip Histograms
+        if trace.type == 'scatter':
+            # Skip restyling for pareto cumulative percentage line
+            if getattr(trace, 'name', '') == 'Cumulative %':
+                continue
+
+            if hasattr(trace, 'line'):
+                trace.line.color = CLR_DATA_LINE
+                trace.line.width = 2
+            
+            if hasattr(trace, 'marker') and trace.marker.color is not None:
+                colours = trace.marker.color
+                if isinstance(colours, list):
+                    trace.marker.color = [
+                        CLR_OOC if c in ('red', '#EF4444') else CLR_DATA
+                        for c in colours
+                    ]
+                trace.marker.size = 7
+                trace.marker.line = dict(color=CLR_PAPER, width=1.5)
 
     # Re-style every hline shape
     # Plotly stores hline color in shape.line.color; map original named colors to refined palette
@@ -1935,4 +1938,30 @@ def download_spc_report():
         report_url=report_url,
         system_status="report",
         selected_chart=""
+    )
+
+@spc_bp.route("/export_check_sheet_pdf", methods=["POST"])
+@login_required
+def export_check_sheet_pdf():
+    data = request.get_json()
+    if not data or 'counters' not in data:
+        return jsonify({'error': 'Invalid data provided'}), 400
+
+    counters_data = data['counters']
+
+    user_reports_dir = os.path.join(REPORTS_BASE, f"user_{current_user.id}")
+    os.makedirs(user_reports_dir, exist_ok=True)
+    
+    output_pdf = os.path.join(user_reports_dir, "check_sheet_report.pdf")
+
+    try:
+        generate_check_sheet_pdf(counters_data, output_pdf)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+    return send_file(
+        output_pdf,
+        as_attachment=True,
+        download_name="check_sheet_report.pdf",
+        mimetype="application/pdf"
     )
