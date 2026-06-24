@@ -22,7 +22,7 @@ from werkzeug.utils import secure_filename
 from spc_pdf_generator import generate_spc_pdf, generate_check_sheet_pdf
 
 from spc_constants import A2_TABLE, A3_TABLE
-from quality_engines.basic_qc_engine import calculate_histogram, calculate_scatter, calculate_boxplot
+from quality_engines.basic_qc_engine import calculate_histogram, calculate_scatter, calculate_boxplot, calculate_pareto
 from quality_engines.spc_engine import (
     check_rule2,
     calculate_xbar_r,
@@ -239,14 +239,14 @@ def upload_file():
     # CLEAN DATA
     # =====================================================
 
-    df = df.apply(
-        pd.to_numeric,
-        errors='coerce'
-    )
+    if chart_type != "pareto":
+        df = df.apply(
+            pd.to_numeric,
+            errors='coerce'
+        )
+        df = df.dropna()
 
-    df = df.dropna()
-
-    if len(df) == 0:
+    if chart_type != "pareto" and len(df) == 0:
 
         return render_template(
             'index.html',
@@ -1532,8 +1532,8 @@ def upload_file():
             )
         )
 
-        fig.update_xaxes(title_text=df.columns[0])
-        fig.update_yaxes(title_text=df.columns[1])
+        fig.update_xaxes(title_text=str(df.columns[0]))
+        fig.update_yaxes(title_text=str(df.columns[1]))
 
     # =====================================================
     # BOX PLOT
