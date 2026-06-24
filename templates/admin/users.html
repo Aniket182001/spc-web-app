@@ -353,7 +353,10 @@
   {% endwith %}
 
   <!-- Filter bar -->
-  <div style="margin-bottom: 16px; text-align: right;">
+  <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+    <div style="flex: 1; max-width: 300px;">
+      <input type="text" id="user-search" placeholder="Search users..." style="width: 100%; padding: 8px 12px; border: 1px solid var(--border-default); border-radius: 8px; font-size: 0.88rem; background: var(--bg-input); color: var(--text-primary); transition: border-color 0.28s ease, box-shadow 0.28s ease;">
+    </div>
     <form method="get" action="{{ url_for('admin.users') }}">
       <label style="font-size: 0.88rem; color: var(--text-secondary); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
         <input type="checkbox" name="show_archived" value="true" {% if show_archived %}checked{% endif %} onchange="this.form.submit()">
@@ -373,7 +376,7 @@
           <th>Plan</th>
           <th>Usage</th>
           <th>Status</th>
-          <th>Action</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -403,7 +406,7 @@
           <td>
             <span style="color: var(--text-secondary); font-size: 0.85rem;">
               {% if user.monthly_chart_limit == -1 %}
-                Unlimited
+                {{ user.charts_used_this_month }} charts
               {% else %}
                 {{ user.charts_used_this_month }} / {{ user.monthly_chart_limit }}
               {% endif %}
@@ -459,6 +462,32 @@
     <div class="empty-state">No users found in the database.</div>
     {% endif %}
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('user-search');
+      if (!searchInput) return;
+
+      searchInput.addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        const rows = document.querySelectorAll('.user-table tbody tr');
+
+        rows.forEach(row => {
+          const usernameCell = row.querySelector('td:nth-child(1) .user-name');
+          const planCell = row.querySelector('td:nth-child(3)');
+
+          const username = usernameCell ? usernameCell.textContent.toLowerCase() : '';
+          const plan = planCell ? planCell.textContent.toLowerCase() : '';
+
+          if (username.includes(term) || plan.includes(term)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    });
+  </script>
 
 </div>
 {% endblock %}
