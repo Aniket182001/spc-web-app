@@ -1,261 +1,296 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Capability Analysis</title>
+{% extends "base.html" %}
 
-    <style>
+{% block title %}Capability Analysis — SPC Insights{% endblock %}
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f6f9;
-            padding: 40px;
-        }
+{% block head_extra %}
+<style>
+  .page-container {
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
 
-        .topbar {
-            max-width: 900px;
-            margin: 0 auto 18px auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
+  .page-header {
+    text-align: center;
+    margin-bottom: 10px;
+  }
 
-        .topbar a {
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: bold;
-        }
+  .page-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-brand);
+    margin-bottom: 8px;
+  }
 
-        .account-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #334155;
-        }
+  .page-desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
 
-        .status-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 3px 10px;
-            border-radius: 999px;
-            background: var(--status-bg, rgba(22, 163, 74, 0.08));
-            border: 1px solid var(--status-border, rgba(22, 163, 74, 0.2));
-            font-size: 0.68rem;
-            color: var(--status-color, #16a34a);
-            font-family: monospace;
-            letter-spacing: 0.05em;
-        }
+  input[type="number"],
+  input[type="file"] {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg-input);
+    border: 1px solid var(--border-default);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    box-shadow: var(--shadow-input);
+    appearance: none;
+    transition: border-color 0.28s ease, box-shadow 0.28s ease;
+  }
 
-        .status-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: var(--status-color, #16a34a);
-            animation: pulse-dot 2s ease-in-out infinite;
-        }
+  input[type="number"]:focus,
+  input[type="file"]:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(37,99,235,0.14), var(--shadow-input);
+  }
 
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.8); }
-        }
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+  }
 
-        .status-badge--ready {
-            --status-color: #16a34a;
-            --status-bg: rgba(22, 163, 74, 0.08);
-            --status-border: rgba(22, 163, 74, 0.2);
-        }
+  .metric-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    padding: 14px 10px;
+    text-align: center;
+  }
 
-        .status-badge--processing {
-            --status-color: #d97706;
-            --status-bg: rgba(245, 158, 11, 0.1);
-            --status-border: rgba(245, 158, 11, 0.28);
-        }
+  .metric-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
 
-        .status-badge--report {
-            --status-color: #2563eb;
-            --status-bg: rgba(37, 99, 235, 0.1);
-            --status-border: rgba(37, 99, 235, 0.28);
-        }
+  .metric-value {
+    font-size: 1.3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
 
-        .status-badge--error {
-            --status-color: #dc2626;
-            --status-bg: rgba(220, 38, 38, 0.09);
-            --status-border: rgba(220, 38, 38, 0.24);
-        }
+  .insight-card {
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+  }
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-        }
+  .insight-card .card-header {
+    background: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
 
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0px 4px 15px rgba(0,0,0,0.08);
-            margin-bottom: 25px;
-        }
+  [data-theme="dark"] .insight-card .card-header {
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
 
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+  .insight-card .card-title {
+    color: var(--info-text);
+  }
 
-        label {
-            display: block;
-            margin-top: 15px;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+  .insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+  }
 
-        input,
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
+  .insight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: var(--info-text);
+    line-height: 1.5;
+  }
 
-        button {
-            margin-top: 25px;
-            width: 100%;
-            background-color: #4deb25;
-            color: white;
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-        }
+  .chart-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .btn-download-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+    margin-bottom: 30px;
+  }
+</style>
+{% endblock %}
 
-        button:hover {
-            background-color: rgb(9, 214, 57);
-        }
+{% block content %}
+<div class="page-container">
 
-        .result-box {
-            margin-top: 20px;
-            line-height: 1.8;
-            font-size: 16px;
-        }
+  <!-- Section 1: Header -->
+  <div class="page-header">
+    <h1 class="page-title">📊 Process Capability Analysis</h1>
+    <p class="page-desc">Upload measurement data to calculate capability metrics and assess process stability</p>
+  </div>
 
-        .insight {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 8px;
-            background-color: #ecfeff;
-            border: 1px solid #67e8f9;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-<div class="topbar">
-    <a href="{{ url_for('spc.dashboard') }}">SPC Insights</a>
-    {% include "components/system_status.html" %}
-    <div class="account-actions">
-        {% if current_user.is_authenticated %}
-        <span>{% if current_user.role == "admin" %}👑 {% endif %}{{ current_user.username }}</span>
-        <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-            <button type="submit" style="background:none; border:none; color:#2563eb; text-decoration:none; font-weight:bold; cursor:pointer; font-family:inherit; padding:0; font-size:inherit;">Logout</button>
-        </form>
-        {% else %}
-        <a href="{{ url_for('auth.login') }}">Login</a>
-        {% endif %}
+  {% if insight and system_status == 'error' %}
+    <div class="flash">
+      {{ insight }}
     </div>
-</div>
+  {% endif %}
 
-<div class="container">
+  <!-- Section 2: Upload form card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      </div>
+      <div class="card-title">Data Upload & Parameters</div>
+    </div>
+    <div class="card-body">
+      <form action="{{ url_for('capability.capability_analysis') }}" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="form-group">
+          <label>Upload Data File (CSV, TXT, XLSX, XLS)</label>
+          <input type="file" name="file" required>
+        </div>
 
-    <h1>📊 Process Capability Analysis</h1>
-
-    <div class="card">
-
-        <form action="{{ url_for('capability.capability_analysis') }}" method="POST" enctype="multipart/form-data">
-
-            <label>Upload Data File</label>
-            <input type="file" name="file" required>
-
-           <label>LSL:</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="form-group">
+            <label>Lower Specification Limit (LSL)</label>
             <input type="number" step="any" name="lsl" required>
-
-            <br><br>
-
-            <label>USL:</label>
+          </div>
+          
+          <div class="form-group">
+            <label>Upper Specification Limit (USL)</label>
             <input type="number" step="any" name="usl" required>
-
-            <button type="submit">
-                Calculate Capability
-            </button>
-
-        </form>
-
-    </div>
-
-    {% if results %}
-
-    <div class="card">
-
-        <h2>Capability Results</h2>
-
-        <div class="result-box">
-
-            <b>Mean:</b> {{ results.mean }} <br>
-            <b>Standard Deviation:</b> {{ results.std_dev }} <br>
-            <b>Cp:</b> {{ results.cp }} <br>
-            <b>Cpk:</b> {{ results.cpk }} <br><br>
-
-            <b>Pp:</b> {{ results.pp }} <br>
-            <b>Ppk:</b> {{ results.ppk }}
-            <br><br>
-
-
+          </div>
         </div>
 
-        <div class="insight">
-
-            <h3>
-                {{ results.capability_rating }}
-            </h3>
-
-            <p>
-                {{ results.capability_message }}
-            </p>
-
-            <hr>
-
-            {% for message in insight_messages %}
-            <p>{{ message }}</p>
-            {% endfor %}
-
-        </div>
-
-    </div>
-
-    {% endif %}
-
-    {% if graph %}
-    <div class="card">
-        {{ graph|safe }}
-    </div>
-    {% endif %}
-
-    {% if results %}
-
-    <a href="{{ report_url }}" download>
-        <button class="generate-btn">
-            Download PDF Report
+        <button type="submit" class="btn-primary" style="margin-top: 10px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+          Calculate Capability
         </button>
-    </a>
+      </form>
+    </div>
+  </div>
 
-    {% endif %}
+  {% if results %}
+  
+  <!-- Section 3: Results card -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+      </div>
+      <div class="card-title">Capability Metrics</div>
+    </div>
+    <div class="card-body">
+      <div class="metrics-grid">
+        <div class="metric-item">
+          <div class="metric-label">Cp</div>
+          <div class="metric-value">{{ results.cp }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Cpk</div>
+          <div class="metric-value">{{ results.cpk }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Cpu</div>
+          <div class="metric-value">{{ results.cpu|default('N/A') }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Cpl</div>
+          <div class="metric-value">{{ results.cpl|default('N/A') }}</div>
+        </div>
+      </div>
+      
+      <div class="metrics-grid" style="margin-bottom: 0;">
+        <div class="metric-item">
+          <div class="metric-label">Pp</div>
+          <div class="metric-value">{{ results.pp }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Ppk</div>
+          <div class="metric-value">{{ results.ppk }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Ppu</div>
+          <div class="metric-value">{{ results.ppu|default('N/A') }}</div>
+        </div>
+        <div class="metric-item">
+          <div class="metric-label">Ppl</div>
+          <div class="metric-value">{{ results.ppl|default('N/A') }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Insight card -->
+  <div class="card insight-card">
+    <div class="card-header">
+      <div class="card-header-icon" style="background: transparent; border: none; box-shadow: none; width: auto; padding-right: 0;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      </div>
+      <div class="card-title">
+        Interpretation: {{ results.capability_rating }}
+      </div>
+    </div>
+    <div class="card-body">
+      <p style="font-weight: 600; font-size: 1.05rem;">{{ results.capability_message }}</p>
+      
+      {% if insight_messages %}
+      <div class="insight-list">
+        {% for message in insight_messages %}
+        <div class="insight-item">
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% endif %}
+
+  <!-- Section 5: Interactive chart card -->
+  {% if graph %}
+  <div class="card">
+    <div class="card-header">
+      <div class="card-header-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      </div>
+      <div class="card-title">Process Histogram</div>
+    </div>
+    <div class="card-body" style="padding: 10px;">
+      <div class="chart-wrapper">
+        {{ graph|safe }}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Section 6: Download PDF button -->
+  {% if results and report_url %}
+  <div class="btn-download-container">
+    <a href="{{ report_url }}" download style="text-decoration: none; width: 100%; max-width: 320px;">
+      <button class="btn-primary" style="width: 100%; padding: 12px 20px; font-size: 0.95rem;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Download PDF Report
+      </button>
+    </a>
+  </div>
+  {% endif %}
 
 </div>
-
-</body>
-</html>
+{% endblock %}
