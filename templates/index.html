@@ -544,11 +544,17 @@
     .page-hero {
       padding: 16px 0 18px;
       display: flex;
+      flex-wrap: wrap;
       align-items: flex-end;
       justify-content: space-between;
       gap: 16px;
       border-bottom: 1px solid var(--border-subtle);
       margin-bottom: 28px;
+    }
+
+    .page-hero-right {
+      flex-shrink: 0;
+      min-width: 260px;
     }
 
     .page-hero-left h2 {
@@ -1278,9 +1284,7 @@
         width: 100%;
       }
       .page-hero {
-        flex-direction: column;
         align-items: flex-start;
-        gap: 12px;
       }
       .header-inner {
         padding: 12px 24px;
@@ -1301,6 +1305,14 @@
     @media (max-width: 768px) {
       main {
         padding: 12px 16px 24px;
+      }
+      .page-hero {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .page-hero-right {
+        min-width: auto;
+        width: 100%;
       }
       .header-inner {
         flex-direction: column;
@@ -1513,6 +1525,37 @@
             Know More &rarr;
           </a>
         </div>
+
+        {% if current_user.is_authenticated %}
+        <div class="summary-plan-col page-hero-right">
+          <div class="card">
+            <div class="card-header" style="padding: 14px 18px;">
+              <div>
+                <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
+                <div class="card-title" style="font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                  {{ current_user.plan_name }}
+                  {% if not current_user.subscription_active %}
+                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Inactive</span>
+                  {% elif current_user.subscription_expires_at and now and current_user.subscription_expires_at < now %}
+                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Expired</span>
+                  {% elif current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit %}
+                    <span style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Monthly Limit Reached</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            <div class="card-body" style="padding: 14px 18px;">
+              <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
+                {% if current_user.monthly_chart_limit == -1 %}
+                  Unlimited
+                {% else %}
+                  <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.charts_used_this_month }} / {{ current_user.monthly_chart_limit }}</span> charts used
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
       </div>
 
       <div class="dashboard-main">
@@ -1648,39 +1691,8 @@
         </div><!-- /.config-panel -->
 
         <!-- ===== SECTION 2: SUMMARY ROW ===== -->
-        {% if current_user.is_authenticated or warning or insight %}
+        {% if warning or insight %}
         <div class="summary-row">
-
-          {% if current_user.is_authenticated %}
-          <div class="summary-plan-col">
-            <div class="card">
-              <div class="card-header" style="padding: 14px 18px;">
-                <div>
-                  <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
-                  <div class="card-title" style="font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                    {{ current_user.plan_name }}
-                    {% if not current_user.subscription_active %}
-                      <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Inactive</span>
-                    {% elif current_user.subscription_expires_at and now and current_user.subscription_expires_at < now %}
-                      <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Expired</span>
-                    {% elif current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit %}
-                      <span style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Monthly Limit Reached</span>
-                    {% endif %}
-                  </div>
-                </div>
-              </div>
-              <div class="card-body" style="padding: 14px 18px;">
-                <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
-                  {% if current_user.monthly_chart_limit == -1 %}
-                    Unlimited
-                  {% else %}
-                    <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.charts_used_this_month }} / {{ current_user.monthly_chart_limit }}</span> charts used
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-          {% endif %}
 
           <div class="summary-messages-col">
             {% if warning %}
