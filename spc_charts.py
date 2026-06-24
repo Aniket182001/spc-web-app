@@ -1798,7 +1798,12 @@ def upload_file():
             color=CLR_ANNOTATION,
             family="'DM Sans', 'IBM Plex Sans', sans-serif"
         ),
-        margin=dict(l=64, r=120, t=80, b=56),
+        margin=dict(
+            l=48 if is_single_chart else 64, 
+            r=80 if is_single_chart else 120, 
+            t=80, 
+            b=56
+        ),
         hovermode='x unified',
         hoverlabel=dict(
             bgcolor=CLR_PAPER,
