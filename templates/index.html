@@ -584,11 +584,27 @@
       color: var(--accent-hover);
     }
 
-    .chart-type-pills {
+    .chart-nav {
       display: flex;
       flex-wrap: wrap;
+      align-items: center;
       gap: 6px;
-      justify-content: flex-end;
+      padding: 14px 18px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .chart-nav-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-right: 4px;
+      flex-shrink: 0;
     }
 
     .pill {
@@ -636,18 +652,73 @@
     }
 
     /* =====================================================
-       DASHBOARD LAYOUT
+       DASHBOARD LAYOUT — Horizontal analytics workflow
     ===================================================== */
-    .dashboard-layout {
+    .dashboard-main {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Configuration Panel Grid ── */
+    .config-grid {
       display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 28px;
+      grid-template-columns: 1fr 1fr 200px;
+      gap: 24px;
       align-items: start;
     }
 
-    .sidebar {
-      position: sticky;
-      top: calc(64px + 16px);
+    .config-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .config-col .form-group {
+      margin-bottom: 16px;
+    }
+
+    .config-col .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .config-col--actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .config-col--actions .btn-primary,
+    .config-col--actions .download-btn {
+      margin-top: 0;
+      width: 100%;
+    }
+
+    /* ── Summary Row ── */
+    .summary-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+    }
+
+    .summary-plan-col {
+      flex-shrink: 0;
+      width: 240px;
+    }
+
+    .summary-messages-col {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* ── Chart Area ── */
+    .chart-area {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeUp 0.5s ease both 0.1s;
     }
 
     /* =====================================================
@@ -926,15 +997,7 @@
         transform: translateY(0);
     }
 
-    /* =====================================================
-       RESULTS SECTION
-    ===================================================== */
-    .results-section {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      animation: fadeUp 0.5s ease both 0.1s;
-    }
+    /* (chart-area animation defined above) */
 
     /* Empty state */
     .empty-state {
@@ -1160,42 +1223,64 @@
     /* =====================================================
        RESPONSIVE
      ===================================================== */
-    /* ── Tablet sidebar: keep sidebar visible at 900–1279px ── */
-    @media (min-width: 900px) and (max-width: 1279px) {
-      .dashboard-layout {
-        grid-template-columns: 260px 1fr;
-        gap: 20px;
-      }
-      main {
-        padding: 12px 24px 48px;
-      }
-    }
 
-    /* ── Large desktop: extra width for sidebar ── */
+    /* ── Large desktop ≥1600px ── */
     @media (min-width: 1600px) {
-      .dashboard-layout {
-        grid-template-columns: 340px 1fr;
-        gap: 32px;
+      .config-grid {
+        grid-template-columns: 1fr 1fr 220px;
+        gap: 28px;
+      }
+      .summary-plan-col {
+        width: 260px;
       }
     }
 
-    /* ── Stack to single column below 900px ── */
-    @media (max-width: 899px) {
-      .dashboard-layout {
-        grid-template-columns: 1fr;
+    /* ── Medium: 2-col config grid at ≤1100px ── */
+    @media (max-width: 1100px) {
+      .config-grid {
+        grid-template-columns: 1fr 1fr;
         gap: 20px;
       }
-      .sidebar {
-        position: static;
+      .config-col--actions {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        gap: 12px;
+      }
+      .config-col--actions .btn-primary,
+      .config-col--actions .download-btn {
+        flex: 1;
+        width: auto;
+      }
+    }
+
+    /* ── Tablet ≤899px ── */
+    @media (max-width: 899px) {
+      main {
+        padding: 16px 24px 32px;
+      }
+      .config-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .config-col--actions {
+        grid-column: auto;
+        flex-direction: column;
+      }
+      .config-col--actions .btn-primary,
+      .config-col--actions .download-btn {
+        flex: none;
+        width: 100%;
+      }
+      .summary-row {
+        flex-direction: column;
+      }
+      .summary-plan-col {
+        width: 100%;
       }
       .page-hero {
         flex-direction: column;
         align-items: flex-start;
-        gap: 16px;
-      }
-      .chart-type-pills {
-        justify-content: flex-start;
-        width: 100%;
+        gap: 12px;
       }
       .header-inner {
         padding: 12px 24px;
@@ -1210,12 +1295,13 @@
       .theme-toggle-label {
         display: none;
       }
-      main {
-        padding: 16px 24px 32px;
-      }
     }
 
+    /* ── Mobile ≤768px ── */
     @media (max-width: 768px) {
+      main {
+        padding: 12px 16px 24px;
+      }
       .header-inner {
         flex-direction: column;
         align-items: stretch;
@@ -1239,9 +1325,6 @@
       .page-hero-left p {
         font-size: 0.8rem;
         margin-top: 6px;
-      }
-      main {
-        padding: 12px 16px 24px;
       }
       .card-header {
         padding: 10px 14px;
@@ -1273,6 +1356,7 @@
       }
     }
 
+    /* ── Small mobile ≤576px ── */
     @media (max-width: 576px) {
       .brand {
         justify-content: flex-start;
@@ -1285,20 +1369,9 @@
         text-align: left;
         width: 100%;
       }
-      .page-hero-left h2 {
-        font-size: 1.5rem;
-      }
-      .chart-type-pills {
-        justify-content: flex-start;
+      .chart-nav {
         gap: 4px;
-      }
-      .pill {
-        font-size: 0.62rem;
-        padding: 3px 8px;
-      }
-      .input-row {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        padding: 10px 12px;
       }
       .footer-inner {
         flex-direction: column;
@@ -1423,6 +1496,7 @@
       </div>
     </header>
 
+
     <!-- ===== MAIN ===== -->
     <main>
 
@@ -1439,207 +1513,231 @@
             Know More &rarr;
           </a>
         </div>
-        <div class="chart-type-pills" aria-label="Supported chart types">
-          <!-- SPC Pills -->
-          <span class="pill tab-spc" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
-          <span class="pill tab-spc" data-chart="xbar_s"><span class="pill-dot"></span>Xbar-S</span>
-          <span class="pill tab-spc" data-chart="imr_chart"><span class="pill-dot"></span>IMR</span>
-          <span class="pill tab-spc" data-chart="p_chart"><span class="pill-dot"></span>P</span>
-          <span class="pill tab-spc" data-chart="np_chart"><span class="pill-dot"></span>NP</span>
-          <span class="pill tab-spc" data-chart="c_chart"><span class="pill-dot"></span>C</span>
-          <span class="pill tab-spc" data-chart="u_chart"><span class="pill-dot"></span>U</span>
-          <!-- QC Pills -->
-          <span class="pill tab-qc" data-chart="histogram" style="display:none;"><span class="pill-dot"></span>Histogram</span>
-          <span class="pill tab-qc" data-chart="scatter" style="display:none;"><span class="pill-dot"></span>Scatter</span>
-          <span class="pill tab-qc" data-chart="box_plot" style="display:none;"><span class="pill-dot"></span>Box & Whisker Plot</span>
-          <span class="pill tab-qc" data-chart="pareto" style="display:none;"><span class="pill-dot"></span>Pareto</span>
-          <span class="pill tab-qc" data-chart="check_sheet" style="display:none;"><span class="pill-dot"></span>Check Sheet</span>
-        </div>
       </div>
 
-      <div class="dashboard-layout">
+      <div class="dashboard-main">
 
-        <!-- ===== SIDEBAR / FORM ===== -->
-        <aside class="sidebar">
+        <!-- ===== SECTION 1: CONFIGURATION PANEL ===== -->
+        <div class="config-panel card">
+          <div class="card-header">
+            <div class="card-header-icon">
+              <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 12.5V3.5A1 1 0 013 2.5h7l3.5 3.5v6.5a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke-width="1.5"/>
+                <path d="M10 2.5V6h3.5" stroke-linejoin="round" stroke-width="1.5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="card-title">Chart Configuration</div>
+              <div class="card-subtitle">Upload your data and set parameters</div>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <form action="{{ url_for('spc.upload_file') }}" method="post" enctype="multipart/form-data">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+              <div class="config-grid">
+
+                <!-- Column 1: Data Source -->
+                <div class="config-col">
+                  <div id="upload-data-source-label" class="form-section-label">Data Source</div>
+
+                  <div id="upload-file-group" class="form-group">
+                    <label for="file-input">Upload Data File</label>
+                    <div class="file-upload-area">
+                      <input type="file" name="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" required />
+                      <div class="file-upload-ui">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M12 16V8m0 0l-3 3m3-3l3 3" stroke-linecap="round" stroke-linejoin="round"/>
+                          <path d="M20 21H4a1 1 0 01-1-1V4a1 1 0 011-1h12l5 5v12a1 1 0 01-1 1z" stroke-linejoin="round"/>
+                        </svg>
+                        <div class="file-upload-ui-text">
+                          <strong>Click to upload or drag &amp; drop</strong>
+                          <span>.xlsx · .xls · .csv · .txt</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="two-column-instruction" style="display:none; color:var(--text-accent); font-size: 0.75rem; margin-top: 8px;">
+                      Note: Uploaded file must contain two columns: Column 1 for Defects/Defectives, Column 2 for Sample Size / Units Inspected.
+                    </div>
+                  </div>
+
+                  <div id="upload-chart-name-group" class="form-group">
+                    <label for="chart_name">Chart Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
+                    <input type="text" name="chart_name" id="chart_name" placeholder="e.g. Daily Production Line A" />
+                  </div>
+                </div>
+
+                <!-- Column 2: Chart Parameters -->
+                <div class="config-col">
+                  <div class="form-section-label">Chart Parameters</div>
+
+                  <div class="form-group">
+                    <label for="chart-select">Chart Type</label>
+                    <div class="select-wrapper">
+                      <select name="chart" id="chart-select">
+                        <!-- SPC Tools -->
+                        <option class="opt-spc" value="xbar_r" {% if selected_chart|default('xbar_r') == "xbar_r" %}selected{% endif %}>Xbar-R Chart</option>
+                        <option class="opt-spc" value="xbar_s" {% if selected_chart == "xbar_s" %}selected{% endif %}>Xbar-S Chart</option>
+                        <option class="opt-spc" value="imr_chart" {% if selected_chart == "imr_chart" %}selected{% endif %}>IMR Chart</option>
+                        <option class="opt-spc" value="p_chart" {% if selected_chart == "p_chart" %}selected{% endif %}>P Chart</option>
+                        <option class="opt-spc" value="np_chart" {% if selected_chart == "np_chart" %}selected{% endif %}>NP Chart</option>
+                        <option class="opt-spc" value="c_chart" {% if selected_chart == "c_chart" %}selected{% endif %}>C Chart</option>
+                        <option class="opt-spc" value="u_chart" {% if selected_chart == "u_chart" %}selected{% endif %}>U Chart</option>
+
+                        <!-- QC Tools -->
+                        <option class="opt-qc" value="histogram" {% if selected_chart == "histogram" %}selected{% endif %}>Histogram</option>
+                        <option class="opt-qc" value="scatter" {% if selected_chart == "scatter" %}selected{% endif %}>Scatter Diagram</option>
+                        <option class="opt-qc" value="box_plot" {% if selected_chart == "box_plot" %}selected{% endif %}>Box &amp; Whisker Plot</option>
+                        <option class="opt-qc" value="pareto" {% if selected_chart == "pareto" %}selected{% endif %}>Pareto Chart</option>
+                        <option class="opt-qc" value="check_sheet" {% if selected_chart == "check_sheet" %}selected{% endif %}>Check Sheet</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div id="subgroup-container" class="form-group">
+                    <label for="subgroup-input">Subgroup Size</label>
+                    <input type="number" id="subgroup-input" name="subgroup_size" min="2" max="25" placeholder="2 – 25" />
+                  </div>
+
+                  <div id="sample-size-container" class="form-group" style="display:none;">
+                    <label for="sample_size">Sample Size</label>
+                    <input type="number" name="sample_size" id="sample_size" min="1" placeholder="Enter sample size" />
+                  </div>
+                </div>
+
+                <!-- Column 3: Actions -->
+                <div class="config-col config-col--actions">
+                  <div class="form-section-label">Actions</div>
+
+                  <button type="submit" id="generate-btn" class="btn-primary">
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M2 13L6 8l3 3 3-5 2-1" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Generate Chart
+                  </button>
+
+                  {% if graph %}
+                  <a href="{{ url_for('spc.download_spc_report') }}" class="download-btn">
+                      <span class="btn-icon">📄</span>
+                      <span>Download Report</span>
+                  </a>
+                  {% endif %}
+                </div>
+
+              </div><!-- /.config-grid -->
+
+              <!-- Spec Limits — full-width row, shown/hidden by JS -->
+              <div id="spec-limit-container">
+                <hr class="form-divider"/>
+                <div class="form-section-label">Specification Limits</div>
+                <div class="input-row" style="max-width: 480px;">
+                  <div class="form-group">
+                    <label for="lsl">LSL</label>
+                    <input type="number" step="any" name="lsl" id="lsl" placeholder="Lower" />
+                  </div>
+                  <div class="form-group">
+                    <label for="usl">USL</label>
+                    <input type="number" step="any" name="usl" id="usl" placeholder="Upper" />
+                  </div>
+                </div>
+              </div>
+
+            </form>
+          </div>
+        </div><!-- /.config-panel -->
+
+        <!-- ===== SECTION 2: SUMMARY ROW ===== -->
+        {% if current_user.is_authenticated or warning or insight %}
+        <div class="summary-row">
+
           {% if current_user.is_authenticated %}
-          <div class="card" style="margin-bottom: 24px;">
-            <div class="card-header" style="padding: 14px 18px;">
-              <div>
-                <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
-                <div class="card-title" style="font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
-                  {{ current_user.plan_name }}
-                  {% if not current_user.subscription_active %}
-                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Inactive</span>
-                  {% elif current_user.subscription_expires_at and now and current_user.subscription_expires_at < now %}
-                    <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Expired</span>
-                  {% elif current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit %}
-                    <span style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Monthly Limit Reached</span>
+          <div class="summary-plan-col">
+            <div class="card">
+              <div class="card-header" style="padding: 14px 18px;">
+                <div>
+                  <div class="card-subtitle" style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Current Plan</div>
+                  <div class="card-title" style="font-size: 1.05rem; display: flex; align-items: center; flex-wrap: wrap; gap: 6px;">
+                    {{ current_user.plan_name }}
+                    {% if not current_user.subscription_active %}
+                      <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Inactive</span>
+                    {% elif current_user.subscription_expires_at and now and current_user.subscription_expires_at < now %}
+                      <span style="background: var(--error-bg); color: var(--error-text); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Subscription Expired</span>
+                    {% elif current_user.monthly_chart_limit != -1 and current_user.charts_used_this_month >= current_user.monthly_chart_limit %}
+                      <span style="background: var(--warning-bg); color: var(--warning-text); border: 1px solid var(--warning-border); padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 600; text-transform: uppercase;">Monthly Limit Reached</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+              <div class="card-body" style="padding: 14px 18px;">
+                <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
+                  {% if current_user.monthly_chart_limit == -1 %}
+                    Unlimited
+                  {% else %}
+                    <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.charts_used_this_month }} / {{ current_user.monthly_chart_limit }}</span> charts used
                   {% endif %}
                 </div>
               </div>
             </div>
-            <div class="card-body" style="padding: 14px 18px;">
-              <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">
-                {% if current_user.monthly_chart_limit == -1 %}
-                  Unlimited
-                {% else %}
-                  <span style="color: var(--text-primary); font-weight: 600;">{{ current_user.charts_used_this_month }} / {{ current_user.monthly_chart_limit }}</span> charts used
-                {% endif %}
-              </div>
-            </div>
           </div>
           {% endif %}
 
-          <div class="card">
-
-            <div class="card-header">
-              <div class="card-header-icon">
-                <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M2 12.5V3.5A1 1 0 013 2.5h7l3.5 3.5v6.5a1 1 0 01-1 1H3a1 1 0 01-1-1z" stroke-width="1.5"/>
-                  <path d="M10 2.5V6h3.5" stroke-linejoin="round" stroke-width="1.5"/>
-                </svg>
-              </div>
-              <div>
-                <div class="card-title">Chart Configuration</div>
-                <div class="card-subtitle">Set parameters for your analysis</div>
-              </div>
-            </div>
-
-            <div class="card-body">
-              <form action="{{ url_for('spc.upload_file') }}" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-
-                <div id="upload-data-source-label" class="form-section-label">Data Source</div>
-
-                <div id="upload-file-group" class="form-group">
-                  <label for="file-input">Upload Data File</label>
-                  <div class="file-upload-area">
-                    <input type="file" name="file" id="file-input" accept=".xlsx,.xls,.csv,.txt" required />
-                    <div class="file-upload-ui">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 16V8m0 0l-3 3m3-3l3 3" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M20 21H4a1 1 0 01-1-1V4a1 1 0 011-1h12l5 5v12a1 1 0 01-1 1z" stroke-linejoin="round"/>
-                      </svg>
-                      <div class="file-upload-ui-text">
-                        <strong>Click to upload or drag &amp; drop</strong>
-                        <span>.xlsx · .xls · .csv · .txt</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div id="two-column-instruction" style="display:none; color:var(--text-accent); font-size: 0.75rem; margin-top: 8px;">
-                    Note: Uploaded file must contain two columns: Column 1 for Defects/Defectives, Column 2 for Sample Size / Units Inspected.
-                  </div>
-                </div>
-
-                <div id="upload-chart-name-group" class="form-group">
-                  <label for="chart_name">Chart Name <span style="color:var(--text-muted);font-weight:400;">(optional)</span></label>
-                  <input type="text" name="chart_name" id="chart_name" placeholder="e.g. Daily Production Line A" />
-                </div>
-
-                <hr class="form-divider"/>
-
-                <div class="form-section-label">Chart Parameters</div>
-
-                <div class="form-group">
-                  <label for="chart-select">Chart Type</label>
-                  <div class="select-wrapper">
-                    <select name="chart" id="chart-select">
-                      <!-- SPC Tools -->
-                      <option class="opt-spc" value="xbar_r" {% if selected_chart|default('xbar_r') == "xbar_r" %}selected{% endif %}>Xbar-R Chart</option>
-                      <option class="opt-spc" value="xbar_s" {% if selected_chart == "xbar_s" %}selected{% endif %}>Xbar-S Chart</option>
-                      <option class="opt-spc" value="imr_chart" {% if selected_chart == "imr_chart" %}selected{% endif %}>IMR Chart</option>
-                      <option class="opt-spc" value="p_chart" {% if selected_chart == "p_chart" %}selected{% endif %}>P Chart</option>
-                      <option class="opt-spc" value="np_chart" {% if selected_chart == "np_chart" %}selected{% endif %}>NP Chart</option>
-                      <option class="opt-spc" value="c_chart" {% if selected_chart == "c_chart" %}selected{% endif %}>C Chart</option>
-                      <option class="opt-spc" value="u_chart" {% if selected_chart == "u_chart" %}selected{% endif %}>U Chart</option>
-                      
-                      <!-- QC Tools -->
-                      <option class="opt-qc" value="histogram" {% if selected_chart == "histogram" %}selected{% endif %}>Histogram</option>
-                      <option class="opt-qc" value="scatter" {% if selected_chart == "scatter" %}selected{% endif %}>Scatter Diagram</option>
-                      <option class="opt-qc" value="box_plot" {% if selected_chart == "box_plot" %}selected{% endif %}>Box & Whisker Plot</option>
-                      <option class="opt-qc" value="pareto" {% if selected_chart == "pareto" %}selected{% endif %}>Pareto Chart</option>
-                      <option class="opt-qc" value="check_sheet" {% if selected_chart == "check_sheet" %}selected{% endif %}>Check Sheet</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div id="subgroup-container" class="form-group">
-                  <label for="subgroup-input">Subgroup Size</label>
-                  <input type="number" id="subgroup-input" name="subgroup_size" min="2" max="25" placeholder="2 – 25" />
-                </div>
-
-                <div id="sample-size-container" class="form-group" style="display:none;">
-                  <label for="sample_size">Sample Size</label>
-                  <input type="number" name="sample_size" id="sample_size" min="1" placeholder="Enter sample size" />
-                </div>
-
-                <div id="spec-limit-container">
-                  <hr class="form-divider"/>
-                  <div class="form-section-label">Specification Limits</div>
-                  <div class="input-row">
-                    <div class="form-group">
-                      <label for="lsl">LSL</label>
-                      <input type="number" step="any" name="lsl" id="lsl" placeholder="Lower" />
-                    </div>
-                    <div class="form-group">
-                      <label for="usl">USL</label>
-                      <input type="number" step="any" name="usl" id="usl" placeholder="Upper" />
-                    </div>
-                  </div>
-                </div>
-
-                <button type="submit" id="generate-btn" class="btn-primary">
-                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 13L6 8l3 3 3-5 2-1" stroke-linecap="round" stroke-linejoin="round"/>
+          <div class="summary-messages-col">
+            {% if warning %}
+            <div class="message warning">
+              <div class="message-inner">
+                <div class="message-header">
+                  <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 2L14 13H2L8 2z" stroke-linejoin="round"/>
+                    <path d="M8 6v3.5M8 11v.5" stroke-linecap="round"/>
                   </svg>
-                  Generate Control Chart
-                </button>
-
-                {% if graph %}
-
-                <a href="{{ url_for('spc.download_spc_report') }}" class="download-btn">
-                    <span class="btn-icon">📄</span>
-                    <span>Download Report</span>
-                </a>
-
-                {% endif %}
-              </form>
-            </div>
-          </div>
-        </aside>
-
-        <!-- ===== RESULTS ===== -->
-        <section class="results-section" aria-label="Chart output and analysis">
-
-          {% if warning %}
-          <div class="message warning">
-            <div class="message-inner">
-              <div class="message-header">
-                <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M8 2L14 13H2L8 2z" stroke-linejoin="round"/>
-                  <path d="M8 6v3.5M8 11v.5" stroke-linecap="round"/>
-                </svg>
-                <span class="message-label">Process Warning</span>
+                  <span class="message-label">Process Warning</span>
+                </div>
+                <div class="message-body">{{ warning }}</div>
               </div>
-              <div class="message-body">{{ warning }}</div>
             </div>
-          </div>
-          {% endif %}
+            {% endif %}
 
-          {% if insight %}
-          <div class="message insight">
-            <div class="message-inner">
-              <div class="message-header">
-                <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
-                  <circle cx="8" cy="8" r="6"/>
-                  <path d="M8 5v3.5M8 11v.5" stroke-linecap="round"/>
-                </svg>
-                <span class="message-label">Statistical Insight</span>
+            {% if insight %}
+            <div class="message insight">
+              <div class="message-inner">
+                <div class="message-header">
+                  <svg viewBox="0 0 16 16" fill="none" stroke-width="1.75" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="8" cy="8" r="6"/>
+                    <path d="M8 5v3.5M8 11v.5" stroke-linecap="round"/>
+                  </svg>
+                  <span class="message-label">Statistical Insight</span>
+                </div>
+                <div class="message-body">{{ insight|safe }}</div>
               </div>
-              <div class="message-body">{{ insight|safe }}</div>
             </div>
+            {% endif %}
           </div>
-          {% endif %}
+
+        </div><!-- /.summary-row -->
+        {% endif %}
+
+        <!-- ===== SECTION 3: CHART AREA ===== -->
+        <div class="chart-area">
+
+          <!-- Chart Nav / Type Pills -->
+          <div class="chart-nav" aria-label="Supported chart types">
+            <span class="chart-nav-label">Chart</span>
+            <!-- SPC Pills -->
+            <span class="pill tab-spc" data-chart="xbar_r"><span class="pill-dot"></span>Xbar-R</span>
+            <span class="pill tab-spc" data-chart="xbar_s"><span class="pill-dot"></span>Xbar-S</span>
+            <span class="pill tab-spc" data-chart="imr_chart"><span class="pill-dot"></span>IMR</span>
+            <span class="pill tab-spc" data-chart="p_chart"><span class="pill-dot"></span>P</span>
+            <span class="pill tab-spc" data-chart="np_chart"><span class="pill-dot"></span>NP</span>
+            <span class="pill tab-spc" data-chart="c_chart"><span class="pill-dot"></span>C</span>
+            <span class="pill tab-spc" data-chart="u_chart"><span class="pill-dot"></span>U</span>
+            <!-- QC Pills -->
+            <span class="pill tab-qc" data-chart="histogram" style="display:none;"><span class="pill-dot"></span>Histogram</span>
+            <span class="pill tab-qc" data-chart="scatter" style="display:none;"><span class="pill-dot"></span>Scatter</span>
+            <span class="pill tab-qc" data-chart="box_plot" style="display:none;"><span class="pill-dot"></span>Box &amp; Whisker</span>
+            <span class="pill tab-qc" data-chart="pareto" style="display:none;"><span class="pill-dot"></span>Pareto</span>
+            <span class="pill tab-qc" data-chart="check_sheet" style="display:none;"><span class="pill-dot"></span>Check Sheet</span>
+          </div>
 
           {% if graph %}
           <div class="chart-card">
@@ -1666,7 +1764,7 @@
               </svg>
             </div>
             <h3>No Chart Generated Yet</h3>
-            <p>Configure your parameters in the panel and click "Generate Control Chart" to begin your analysis.</p>
+            <p>Configure your parameters in the panel above and click "Generate Chart" to begin your analysis.</p>
             <div class="empty-state-steps">
               <div class="empty-state-step">
                 <span class="step-num">1</span>
@@ -1696,9 +1794,9 @@
                 Add Counter
               </button>
             </div>
-            
+
             <div id="check-sheet-counters" style="display: flex; flex-direction: column; gap: 1rem; overflow-y: auto;"></div>
-            
+
             <div style="margin-top: 2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem; display: flex; gap: 1rem; justify-content: flex-end;">
               <button type="button" id="export-csv-btn" style="padding: 0.75rem 1.25rem; background: var(--bg-secondary); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 8px;">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -1711,8 +1809,9 @@
             </div>
           </div>
 
-        </section>
-      </div>
+        </div><!-- /.chart-area -->
+
+      </div><!-- /.dashboard-main -->
     </main>
 
     <footer>
